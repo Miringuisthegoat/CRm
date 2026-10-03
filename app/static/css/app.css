@@ -1,0 +1,3 @@
+:root { --carace-primary: #1d2e9e; --carace-sidebar: #F0EAD6; }
+.text-primary { color: var(--carace-primary) !important; }
+.sidebar { min-height: 100vh; width: 250px; background: var(--carace-sidebar); }

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Carace Fleet CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex">
+        <aside class="sidebar p-3">
+            <h4 class="text-primary">Carace</h4>
+            <div class="small text-muted">Nairobi, Kenya</div>
+            <hr>
+            <button class="btn btn-sm btn-outline-primary" id="themeToggle">Toggle Theme</button>
+        </aside>
+        <main class="container-fluid p-4">
+            <h2>Fleet Management CRM</h2>
+            <div class="row g-3 mt-2" id="kpiCards"></div>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
