@@ -809,7 +809,10 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           <div class="d-flex gap-2">
             <button class="btn btn-outline-primary btn-sm" onclick="showScreen('import')"><i class="bx bx-import me-1"></i>Import Excel</button>
             <button class="btn btn-outline-secondary btn-sm"><i class="bx bx-export me-1"></i>Export CSV</button>
-            <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Add vehicle</button>
+            <button type="button" class="btn btn-primary btn-sm"
+                onclick="openAddCustomer()">
+  <i class="bx bx-plus me-1"></i>Add customer
+</button>
           </div>
         </div>
         <div class="card">
@@ -840,7 +843,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Customers</h5><small class="text-muted" id="custCount">0 customers</small></div>
           <div class="d-flex gap-2">
             <button class="btn btn-outline-primary btn-sm" onclick="showScreen('import')"><i class="bx bx-import me-1"></i>Import Excel</button>
-            <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Add customer</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddCustomer()"><i class="bx bx-plus me-1"></i>Add customer</button>
           </div>
         </div>
         <div class="stats-grid mb-4">
@@ -879,7 +882,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           <div class="d-flex gap-2">
             <button class="btn btn-outline-primary btn-sm" onclick="showScreen('import')"><i class="bx bx-import me-1"></i>Import stock</button>
             <button class="btn btn-outline-secondary btn-sm"><i class="bx bx-plus me-1"></i>New order</button>
-            <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Add product</button>
+            <button type="button" class="btn btn-primary btn-sm"onclick="openAddAccessory()"><i class="bx bx-plus me-1"></i>Add product</button>
           </div>
         </div>
         <div class="stats-grid mb-4">
@@ -2476,6 +2479,162 @@ async function saveRecordEdit() {
 }
 
 
+function openAddCustomer() {
+    const modalElement = document.getElementById('addCustomerModal');
+
+    if (!modalElement) {
+        console.error('Add Customer modal was not found.');
+        alert('Add Customer form could not be found.');
+        return;
+    }
+
+    const form = document.getElementById('addCustomerForm');
+    if (form) form.reset();
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    modal.show();
+}
+
+
+function openAddAccessory() {
+  document.getElementById('addAccessoryName').value = '';
+  document.getElementById('addAccessorySku').value = '';
+  document.getElementById('addAccessoryPrice').value = '';
+  document.getElementById('addAccessoryStock').value = '0';
+
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('addAccessoryModal')
+  ).show();
+}
+
+async function postNewRecord(endpoint, payload, buttonId) {
+  const button = document.getElementById(buttonId);
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Saving...';
+
+  try {
+    const csrfResponse = await fetch('/api/csrf-token');
+    if (!csrfResponse.ok) {
+      throw new Error('Could not verify your session. Sign in again.');
+    }
+
+    const { csrf_token } = await csrfResponse.json();
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf_token
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Could not save the record.');
+    }
+
+    const loaded = await loadSavedRecords();
+    if (!loaded) {
+      throw new Error('Saved, but the dashboard could not reload the records.');
+    }
+
+    return result;
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+  }
+}
+
+
+async function saveNewCustomer(event) {
+    event.preventDefault();
+
+    const getValue = (id) =>
+        document.getElementById(id)?.value?.trim() ?? '';
+
+    const fullName = getValue('customerFullName');
+    const company = getValue('customerCompany');
+    const email = getValue('customerEmail');
+    const phone = getValue('customerPhone');
+    const customerType = getValue('customerType');
+    const vehicles = Number(getValue('customerVehicles'));
+    const plate = getValue('customerPlate').toUpperCase();
+    const status = getValue('customerStatus');
+
+    if (!fullName || !phone || !customerType || !status) {
+        showToast('Please fill in all required fields.', 'warning');
+        return;
+    }
+
+    if (!Number.isInteger(vehicles) || vehicles < 0) {
+        showToast('Enter a valid number of vehicles.', 'warning');
+        return;
+    }
+
+    try {
+        await postNewRecord('/api/customers', {
+            full_name: fullName,
+            phone: phone,
+            email: email,
+            notes: company,
+            customer_type: customerType,
+            vehicles: vehicles,
+            plate: plate,
+            status: status
+        }, 'saveCustomerBtn');
+
+        bootstrap.Modal.getOrCreateInstance(
+            document.getElementById('addCustomerModal')
+        ).hide();
+
+        document.getElementById('addCustomerForm').reset();
+
+        showToast('Customer added successfully.', 'success');
+
+        if (typeof loadSavedRecords === 'function') {
+            await loadSavedRecords();
+        }
+    } catch (error) {
+        showToast(error.message || 'Could not add customer.', 'danger');
+    }
+}
+
+
+async function saveNewAccessory(event) {
+  event.preventDefault();
+
+  const price = Number(document.getElementById('addAccessoryPrice').value);
+  const quantity = Number(document.getElementById('addAccessoryStock').value);
+
+  if (!Number.isFinite(price) || price < 0 ||
+      !Number.isInteger(quantity) || quantity < 0) {
+    showToast('Enter a valid price and whole-number stock quantity.', 'warning');
+    return;
+  }
+
+  try {
+    await postNewRecord('/api/accessories', {
+      name: document.getElementById('addAccessoryName').value.trim(),
+      sku: document.getElementById('addAccessorySku').value.trim(),
+      price_kes: price,
+      quantity: quantity
+    }, 'saveNewAccessoryBtn');
+
+    bootstrap.Modal.getInstance(
+      document.getElementById('addAccessoryModal')
+    )?.hide();
+
+    showToast('Accessory added successfully.', 'success');
+  } catch (error) {
+    showToast(error.message || 'Could not add accessory.', 'danger');
+  }
+}
+
+
+
 async function deleteDatabaseRecord(endpoint, label, recordName, reload) {
   if (!confirm(`Delete "${recordName}"? This action cannot be undone.`)) {
     return;
@@ -2579,23 +2738,26 @@ function renderCust() {
   const q = (document.getElementById('custQ')?.value||'').toLowerCase();
   const t = document.getElementById('custType')?.value||'';
   const list = custData.filter(r=>(!q||(r.name+r.company).toLowerCase().includes(q))&&(!t||r.type===t));
-  document.getElementById('custBody').innerHTML = list.length ? list.map((r,i)=>`
-    <td>
-  <button class="btn btn-sm btn-outline-primary me-1"
-    onclick="openRecordDetails('customer',${custData.indexOf(r)})">
-    <i class="bx bx-show me-1"></i>View
-  </button>
-
-  <button class="btn btn-sm btn-outline-secondary me-1"
-    onclick="openRecordDetails('customer',${custData.indexOf(r)},true)">
-    <i class="bx bx-edit"></i>
-  </button>
-
-  <button class="btn btn-sm btn-outline-danger"
-    onclick="deleteCustomer(${r.id}, ${JSON.stringify(r.name || 'customer')})">
-    <i class="bx bx-trash"></i>
-  </button>
-    </td>`).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No customer records yet. Add a customer or import a customer list.</td></tr>';
+  document.getElementById('custBody').innerHTML = list.length ? list.map((r,i)=>{
+    const idx = custData.indexOf(r);
+    const delArg = escapeCalendarText(JSON.stringify(r.name || 'customer'));
+    return `
+    <tr>
+      <td><input type="checkbox" class="form-check-input cust-chk" data-i="${i}" onchange="updateCustSel()"></td>
+      <td class="fw-semibold">${escapeCalendarText(r.name)}</td>
+      <td>${escapeCalendarText(r.company)}</td>
+      <td><a href="mailto:${escapeCalendarText(r.email)}" class="text-primary">${escapeCalendarText(r.email)}</a></td>
+      <td>${escapeCalendarText(r.phone)}</td>
+      <td>${escapeCalendarText(r.type)}</td>
+      <td>${escapeCalendarText(r.vehicles)}</td>
+      <td><span class="badge ${statusBadge[r.status]||'badge-secondary-subtle'}">${escapeCalendarText(r.status)}</span></td>
+      <td class="text-nowrap">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('customer',${idx})"><i class="bx bx-show me-1"></i>View</button>
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openRecordDetails('customer',${idx},true)"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer(${r.id}, ${delArg})"><i class="bx bx-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No customer records yet. Add a customer or import a customer list.</td></tr>';
   document.getElementById('custCount').textContent = `${custData.length} customers`;
   document.getElementById('custStatTotal').textContent = custData.length;
   document.getElementById('custStatFleet').textContent = custData.filter(r=>r.type==='Fleet client').length;
@@ -2639,23 +2801,23 @@ function goMessaging(type) {
 }
 
 function renderAcc() {
-  document.getElementById('accBody').innerHTML = accData.length ? accData.map(r=>`
-    <td>
-  <button class="btn btn-sm btn-outline-primary me-1"
-    onclick="openRecordDetails('accessory',${accData.indexOf(r)})">
-    <i class="bx bx-show me-1"></i>View
-  </button>
-
-  <button class="btn btn-sm btn-outline-secondary me-1"
-    onclick="openRecordDetails('accessory',${accData.indexOf(r)},true)">
-    <i class="bx bx-edit"></i>
-  </button>
-
-  <button class="btn btn-sm btn-outline-danger"
-    onclick="deleteAccessory(${r.id}, ${JSON.stringify(r.product || 'accessory')})">
-    <i class="bx bx-trash"></i>
-  </button>
-    </td>`).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">No products yet. Add a product or import stock.</td></tr>';
+  document.getElementById('accBody').innerHTML = accData.length ? accData.map(r=>{
+    const idx = accData.indexOf(r);
+    const delArg = escapeCalendarText(JSON.stringify(r.product || 'accessory'));
+    const st = r.status==='ok' ? ['badge-success-subtle','In stock'] : r.status==='low' ? ['badge-warning-subtle','Low stock'] : ['badge-danger-subtle','Out of stock'];
+    return `
+    <tr>
+      <td>${escapeCalendarText(r.product)}</td>
+      <td>KES ${escapeCalendarText(r.price)}</td>
+      <td>${escapeCalendarText(r.stock)}</td>
+      <td><span class="badge ${st[0]}">${st[1]}</span></td>
+      <td class="text-nowrap">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('accessory',${idx})"><i class="bx bx-show me-1"></i>View</button>
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openRecordDetails('accessory',${idx},true)"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteAccessory(${r.id}, ${delArg})"><i class="bx bx-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">No products yet. Add a product or import stock.</td></tr>';
   document.getElementById('accStatTotal').textContent = accData.length;
   document.getElementById('accStockTotal').textContent = accData.reduce((total, item)=>total + (Number(item.stock)||0),0);
 }
@@ -2752,28 +2914,30 @@ function renderTrackers() {
 function toggleAllTrk(cb) { document.querySelectorAll('#trackerBody input[type=checkbox]').forEach(c=>c.checked=cb.checked); }
 
 function renderSIMs() {
-  document.getElementById('simBody').innerHTML = simCards.length ? simCards.map(s=>`
-    <td>
-  <button class="btn btn-sm btn-outline-primary me-1"
-    onclick="openAssignSIM('${s.sim}')">
-    <i class="bx bx-link me-1"></i>Assign
-  </button>
-
-  <button class="btn btn-sm btn-outline-primary me-1"
-    onclick="openRecordDetails('sim',${simCards.indexOf(s)})">
-    <i class="bx bx-show me-1"></i>View
-  </button>
-
-  <button class="btn btn-sm btn-outline-secondary me-1"
-    onclick="openRecordDetails('sim',${simCards.indexOf(s)},true)">
-    <i class="bx bx-edit"></i>
-  </button>
-
-  <button class="btn btn-sm btn-outline-danger"
-    onclick="deleteSIMCard(${s.id}, ${JSON.stringify(s.sim || 'SIM card')})">
-    <i class="bx bx-trash"></i>
-  </button>
-    </td>`).join('') : '<tr><td colspan="8" class="text-center text-muted py-4">No SIM records yet. Add a SIM card to begin.</td></tr>';
+    document.getElementById('simBody').innerHTML = simCards.length ? simCards.map(s=>{
+    const idx = simCards.indexOf(s);
+    const delArg = escapeCalendarText(JSON.stringify(s.sim || 'SIM card'));
+    const status = s.status || (s.tracker_id ? 'active' : 'spare');
+    const badge = status==='active'?'badge-success-subtle':status==='expiring'?'badge-warning-subtle':status==='spare'?'badge-primary-subtle':'badge-danger-subtle';
+    const iccid = s.iccid || '';
+    return `
+    <tr>
+      <td><code style="font-size:.75rem">${escapeCalendarText(s.sim)}</code></td>
+      <td><code style="font-size:.7rem;color:#a1acb8">${escapeCalendarText(iccid.slice(0,12))}${iccid.length>12?'…':''}</code></td>
+      <td>${escapeCalendarText(s.network || '—')}</td>
+      <td>${escapeCalendarText(s.plan || '—')}</td>
+      <td>${(s.tracker || s.trackerImei)
+        ? `<code style="font-size:.75rem">${escapeCalendarText(s.tracker || s.trackerImei)}</code>`
+        : '<span class="text-muted fst-italic">— unassigned —</span>'}</td>
+      <td>${escapeCalendarText(s.expiry || '—')}</td>
+      <td><span class="badge ${badge}">${escapeCalendarText(status)}</span></td>
+      <td class="text-nowrap">
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('sim',${idx})"><i class="bx bx-show me-1"></i>View</button>
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openRecordDetails('sim',${idx},true)"><i class="bx bx-edit"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteSIMCard(${s.id}, ${delArg})"><i class="bx bx-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" class="text-center text-muted py-4">No SIM records yet. Add a SIM card to begin.</td></tr>';
   const today = new Date();
   const expiringBefore = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
   document.getElementById('simStatTotal').textContent = simCards.length;
@@ -2848,6 +3012,85 @@ function buildCal() {
 }
 
 
+
+
+function filterEventCustomers() {
+  const input = document.getElementById('eventCustomerSearch');
+  const results = document.getElementById('eventCustomerResults');
+  const hidden = document.getElementById('newEventCustomer');
+  const selectedLabel = document.getElementById('eventCustomerSelected');
+
+  const query = input.value.trim().toLowerCase();
+
+  hidden.value = '';
+  selectedLabel.textContent = 'No customer selected';
+  results.innerHTML = '';
+
+  if (!query) return;
+
+  const customers = (custData || []).filter(customer => {
+    const searchable = [
+      customer.name,
+      customer.company,
+      customer.email,
+      customer.phone,
+      customer.type,
+      customer.plate,
+      customer.status
+    ].join(' ').toLowerCase();
+
+    return searchable.includes(query);
+  });
+
+  if (!customers.length) {
+    const empty = document.createElement('div');
+    empty.className = 'list-group-item text-muted';
+    empty.textContent = 'No matching customers found.';
+    results.appendChild(empty);
+    return;
+  }
+
+  customers.forEach(customer => {
+    const option = document.createElement('button');
+    option.type = 'button';
+    option.className = 'list-group-item list-group-item-action text-start';
+
+    const name = document.createElement('div');
+    name.className = 'fw-semibold';
+    name.textContent = customer.name || 'Unnamed customer';
+
+    const company = document.createElement('div');
+    company.className = 'small text-muted';
+    company.textContent = `Company: ${customer.company || 'Not provided'}`;
+
+    const contact = document.createElement('div');
+    contact.className = 'small';
+    contact.textContent =
+      `Email: ${customer.email || 'Not provided'} | Phone: ${customer.phone || 'Not provided'}`;
+
+    const vehicle = document.createElement('div');
+    vehicle.className = 'small text-muted';
+    vehicle.textContent =
+      `Type: ${customer.type || 'Not recorded'} | Vehicles: ${customer.vehicles || '0'} | Plate: ${customer.plate || '—'} | Status: ${customer.status || 'Registered'}`;
+
+    option.append(name, company, contact, vehicle);
+
+    option.addEventListener('click', () => {
+      hidden.value = customer.id;
+      input.value = customer.name || '';
+      selectedLabel.textContent =
+        `Selected customer: ${customer.name || 'Unnamed customer'}`;
+      results.innerHTML = '';
+    });
+
+    results.appendChild(option);
+  });
+}
+
+
+
+
+
 function openAddCalendarEvent() {
   const date = calendarState.selectedDate || new Date();
   const dateInput = document.getElementById('newEventDate');
@@ -2858,20 +3101,22 @@ function openAddCalendarEvent() {
     String(date.getDate()).padStart(2, '0')
   ].join('-');
 
-  const customerSelect = document.getElementById('newEventCustomer');
-  customerSelect.innerHTML =
-    '<option value="">No customer linked</option>' +
-    custData.map(c =>
-      `<option value="${c.id}">${escapeCalendarText(c.name)}</option>`
-    ).join('');
+  document.getElementById('eventCustomerSearch').value = '';
+  filterEventCustomers();
 
   document.getElementById('newEventTitle').value = '';
   document.getElementById('newEventTime').value = '09:00';
   document.getElementById('newEventDescription').value = '';
 
+  document.getElementById('eventCustomerSearch')
+  .oninput = filterEventCustomers;
+
   bootstrap.Modal.getOrCreateInstance(
     document.getElementById('addCalendarEventModal')
   ).show();
+
+  document.getElementById('eventCustomerSearch').oninput =
+  filterEventCustomers;
 }
 
 async function saveCalendarEvent(event) {
@@ -3982,12 +4227,35 @@ restoreRememberedSession();
               value="09:00" required>
           </div>
         </div>
+       
         <div class="mb-3">
-          <label for="newEventCustomer" class="form-label">Customer (optional)</label>
-          <select id="newEventCustomer" class="form-select">
-            <option value="">No customer linked</option>
-          </select>
-        </div>
+         <label for="eventCustomerSearch" class="form-label">
+           Customer (optional)
+         </label>
+
+         <input
+           type="search"
+           id="eventCustomerSearch"
+           class="form-control mb-2"
+           placeholder="Search customer by name..."
+           autocomplete="off"
+           oninput="filterCustomerDropdown(this.value)"
+         >
+          <div
+            id="eventCustomerResults"
+            class="list-group mt-1"
+            style="max-height:200px; overflow-y:auto;"
+         ></div>
+         <input type="hidden" id="newEventCustomer" value="">
+           <small id="eventCustomerSelected" class="text-muted">
+             No customer selected
+           </small>
+
+         <small class="text-muted">
+            Type a name to filter customers, then select the correct customer.
+         </small>
+       </div>
+
         <div class="mb-3">
           <label for="newEventDescription" class="form-label">Description</label>
           <textarea id="newEventDescription" class="form-control"
@@ -4005,5 +4273,116 @@ restoreRememberedSession();
   </div>
 </div>
 
+
+<!-- ADD CUSTOMER MODAL -->
+
+<div class="modal fade" id="addCustomerModal" tabindex="-1"
+     aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="addCustomerForm" onsubmit="saveNewCustomer(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCustomerModalLabel">
+                        Add New Customer
+                    </h5>
+                    <button type="button" class="btn btn-primary" onclick="openAddCustomer()"><i class="bx bx-plus"></i> Add Customer</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="customerFullName" class="form-label">
+                                Full name *
+                            </label>
+                            <input type="text" class="form-control"
+                                   id="customerFullName" maxlength="120"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerCompany" class="form-label">
+                                Company
+                            </label>
+                            <input type="text" class="form-control"
+                                   id="customerCompany" maxlength="200">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerEmail" class="form-label">
+                                Email address
+                            </label>
+                            <input type="email" class="form-control"
+                                   id="customerEmail" maxlength="190">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerPhone" class="form-label">
+                                Phone number *
+                            </label>
+                            <input type="tel" class="form-control"
+                                   id="customerPhone" maxlength="32"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerType" class="form-label">
+                                Customer type *
+                            </label>
+                            <select class="form-select" id="customerType" required>
+                                <option value="">Select customer type</option>
+                                <option value="Individual">Individual</option>
+                                <option value="Fleet client">Fleet client</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerVehicles" class="form-label">
+                                Number of vehicles
+                            </label>
+                            <input type="number" class="form-control"
+                                   id="customerVehicles" min="0" step="1"
+                                   value="0" required>
+                            <div class="form-text">
+                                Enter 0 if the customer has no vehicles yet.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerPlate" class="form-label">
+                                Vehicle plate
+                            </label>
+                            <input type="text" class="form-control"
+                                   id="customerPlate" maxlength="32"
+                                   placeholder="e.g. KDD 404D">
+                            <div class="form-text">
+                                Enter the primary vehicle's plate, if applicable.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="customerStatus" class="form-label">
+                                Status *
+                            </label>
+                            <select class="form-select" id="customerStatus" required>
+                                <option value="Registered">Registered</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        Save Customer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 </body>
 </html>

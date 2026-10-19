@@ -175,7 +175,82 @@ def create_vehicle():
     return jsonify({"ok": True, "id": vehicle.id}), 201
 
 
-# Update an existing customer
+
+@api_bp.post("/customers")
+@login_required
+def create_customer():
+    data = request.get_json(silent=True) or {}
+
+    full_name = str(data.get("full_name", "")).strip()
+    phone = str(data.get("phone", "")).strip() or "N/A"
+    email = str(data.get("email", "")).strip().lower()
+    notes = str(data.get("notes", "")).strip()
+
+    if not full_name or len(full_name) > 120:
+        return jsonify({"error": "Enter a valid customer name."}), 400
+    if len(phone) > 32 or len(email) > 190 or len(notes) > 500:
+        return jsonify({"error": "One or more fields are too long."}), 400
+
+    customer = Customer(
+        full_name=full_name,
+        phone=phone,
+        email=email or None,
+        notes=notes or None,
+    )
+
+    try:
+        db.session.add(customer)
+        db.session.commit()
+        return jsonify({"ok": True, "id": customer.id}), 201
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Customer creation failed")
+        return jsonify({"error": "Could not create customer."}), 500
+
+
+@api_bp.post("/accessories")
+@login_required
+def create_accessory():
+    data = request.get_json(silent=True) or {}
+
+    name = str(data.get("name", "")).strip()
+    sku = str(data.get("sku", "")).strip().upper()
+
+    if not name or len(name) > 120:
+        return jsonify({"error": "Enter a valid product name."}), 400
+    if not sku or len(sku) > 64:
+        return jsonify({"error": "Enter a valid SKU."}), 400
+
+    try:
+        price = float(data.get("price_kes"))
+        quantity = int(data.get("quantity"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Price and stock must be valid numbers."}), 400
+
+    if not math.isfinite(price) or price < 0:
+        return jsonify({"error": "Price must be non-negative."}), 400
+    if quantity < 0:
+        return jsonify({"error": "Stock cannot be negative."}), 400
+
+    if Accessory.query.filter_by(sku=sku).first():
+        return jsonify({"error": "That SKU already exists."}), 409
+
+    accessory = Accessory(
+        name=name,
+        sku=sku,
+        price_kes=price,
+        quantity=quantity,
+    )
+
+    try:
+        db.session.add(accessory)
+        db.session.commit()
+        return jsonify({"ok": True, "id": accessory.id}), 201
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Accessory creation failed")
+        return jsonify({"error": "Could not create accessory."}), 500
+
 @api_bp.patch("/customers/<int:record_id>")
 @login_required
 def update_customer(record_id):
