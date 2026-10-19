@@ -17,7 +17,7 @@ def login():
     user = User.query.filter_by(email=data.get("email", "").strip().lower()).first()
     if not user or not user.check_password(data.get("password", "")):
         return jsonify({"error": "Invalid credentials"}), 401
-    login_user(user)
+    login_user(user, remember=data.get("remember") is True)
     return jsonify({"ok": True, "user": {"id": user.id, "email": user.email, "role": user.role}})
 
 
@@ -91,7 +91,7 @@ def fb_verify():
     user.email_verified = True
     db.session.commit()
     mark_email_verified(user.firebase_uid)
-    login_user(user)
+    login_user(user, remember=data.get("remember") is True)
     return jsonify({"ok": True, "user": _user_json(user)})
 
 
@@ -99,16 +99,65 @@ def fb_verify():
 @csrf.exempt
 @limiter.limit("20/minute")
 def fb_login():
-    claims = _claims(request.get_json() or {})
+    data = request.get_json() or {}
+    claims = _claims(data)
     user = User.query.filter_by(firebase_uid=claims["uid"]).first() if claims else None
     if not user:
         return jsonify({"error": "No Carace account for this login."}), 403
     if not user.email_verified:
         return jsonify({"error": "Email not verified.", "code": "unverified"}), 403
-    login_user(user)
+    login_user(user, remember=data.get("remember") is True)
+    return jsonify({"ok": True, "user": _user_json(user)})
+
+
+@auth_bp.post("/firebase/google-login")
+@csrf.exempt
+@limiter.limit("20/minute")
+def fb_google_login():
+    data = request.get_json() or {}
+    claims = _claims(data)
+    if not claims:
+        return jsonify({"error": "Invalid session. Try again."}), 401
+    firebase_claims = claims.get("firebase") or {}
+    identities = firebase_claims.get("identities") or {}
+    has_google_identity = bool(identities.get("google.com"))
+    if (firebase_claims.get("sign_in_provider") != "google.com" and not has_google_identity) or not claims.get("email_verified"):
+        return jsonify({"error": "Sign in with a verified Google account."}), 403
+
+    email = (claims.get("email") or "").lower()
+    if not email:
+        return jsonify({"error": "Google did not provide an email address."}), 403
+    domain = current_app.config["SIGNUP_EMAIL_DOMAIN"]
+    if domain and not email.endswith("@" + domain):
+        return jsonify({"error": f"Only @{domain} accounts can sign up or sign in."}), 403
+
+    user = User.query.filter_by(firebase_uid=claims["uid"]).first()
+    if not user:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(
+                name=str(claims.get("name") or email.split("@", 1)[0]).strip()[:120],
+                email=email,
+                firebase_uid=claims["uid"],
+                email_verified=True,
+                role="staff",
+            )
+            db.session.add(user)
+        else:
+            if user.firebase_uid and user.firebase_uid != claims["uid"]:
+                return jsonify({"error": "This Carace account is linked to a different sign-in."}), 409
+            user.firebase_uid = claims["uid"]
+            user.email_verified = True
+        db.session.commit()
+    elif not user.email_verified:
+        user.email_verified = True
+        db.session.commit()
+
+    login_user(user, remember=data.get("remember") is True)
     return jsonify({"ok": True, "user": _user_json(user)})
 
 @auth_bp.post("/logout")
+@csrf.exempt
 @login_required
 def logout():
     logout_user()

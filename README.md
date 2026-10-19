@@ -1,6 +1,6 @@
 # Carace - Fleet CRM
 
-Internal Flask CRM for Carace (Nairobi, Kenya): fleet, fuel, payments, SIM/tracker registry and customer messaging.
+Internal Flask CRM for Carace (Nairobi, Kenya): fleet, payments, SIM/tracker registry and customer messaging.
 
 ## Stack
 - Backend: Flask, SQLAlchemy, Flask-Login, Flask-Migrate, Flask-SocketIO
@@ -13,7 +13,7 @@ Internal Flask CRM for Carace (Nairobi, Kenya): fleet, fuel, payments, SIM/track
 - Dashboard KPIs
 - Modular APIs via Blueprints
 - Auth (login/logout/me) with hashed passwords
-- Models: users, vehicles, customers, trackers, sim_cards, fuel_logs, accessories, payments, sms_logs, calendar_events
+- Models: users, vehicles, customers, trackers, sim_cards, accessories, payments, sms_logs, calendar_events
 - Kenyan + East African plate validation
 - Kenyan network constraints: Safaricom, Airtel, Telkom, Faiba
 - SMS billing: `parts = ceil(len(message)/160)`, `cost = parts * recipients * 0.80`

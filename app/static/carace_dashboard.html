@@ -216,6 +216,7 @@ body {
 
 /* ── STAT CARDS ── */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+.dashboard-stats-grid { grid-template-columns: repeat(4, 1fr); }
 .stat-card { background: #fff; border: 1px solid var(--card-border); border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 6px rgba(67,89,113,.06); }
 .stat-icon { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
 .stat-icon.green { background: rgba(29,158,117,.15); color: var(--carace-green); }
@@ -290,51 +291,6 @@ body {
 /* ── PROGRESS BARS ── */
 .progress { height: 6px; border-radius: 3px; background: #e7e7ff; }
 .progress-bar { border-radius: 3px; }
-
-/* ── FUEL BARS ── */
-.fuel-level { height: 8px; border-radius: 4px; background: #f0f0f0; overflow: hidden; margin: 4px 0; }
-.fuel-fill { height: 100%; border-radius: 4px; }
-
-/* ── MAP PLACEHOLDER ── */
-.map-container {
-  background: #e8e0d5;
-  border-radius: 8px;
-  height: 240px;
-  position: relative;
-  overflow: hidden;
-}
-.map-grid-overlay {
-  position: absolute; inset: 0;
-  background-image: linear-gradient(rgba(150,130,100,.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(150,130,100,.07) 1px, transparent 1px);
-  background-size: 30px 30px;
-}
-.map-road-h { position: absolute; background: rgba(255,255,255,.7); left: 0; right: 0; }
-.map-road-v { position: absolute; background: rgba(255,255,255,.7); top: 0; bottom: 0; }
-.vehicle-pin { position: absolute; transform: translate(-50%,-50%); cursor: pointer; }
-.vehicle-pin-dot {
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  border: 2.5px solid #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
-}
-.vehicle-pin-label {
-  position: absolute;
-  top: -24px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,.7);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-.pin-moving { background: #1D9E75; }
-.pin-idle { background: #696cff; }
-.pin-alert { background: #ff4d49; animation: pin-pulse 1s infinite; }
-.pin-offline { background: #a1acb8; }
-@keyframes pin-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 /* ── SIGNAL BARS ── */
 .signal-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
@@ -465,7 +421,6 @@ html[data-bs-theme="dark"] .form-check-label { color: #a0a8d9; }
 html[data-bs-theme="dark"] .text-muted { color: #7983bb !important; }
 html[data-bs-theme="dark"] .border-bottom { border-color: #2f3349 !important; }
 html[data-bs-theme="dark"] .progress { background: #2f3349; }
-html[data-bs-theme="dark"] .fuel-level { background: #2f3349; }
 html[data-bs-theme="dark"] .drop-zone { border-color: #3a3f5c; }
 html[data-bs-theme="dark"] .drop-zone:hover { background: rgba(29,158,117,.06); border-color: var(--carace-green); }
 html[data-bs-theme="dark"] .cal-day { background: #25273d; border-color: #2f3349; }
@@ -484,8 +439,6 @@ html[data-bs-theme="dark"] .badge-danger-subtle { background: rgba(255,77,73,.2)
 html[data-bs-theme="dark"] .badge-warning-subtle { background: rgba(255,171,0,.2); color: #ffc533; }
 html[data-bs-theme="dark"] .badge-info-subtle { background: rgba(3,195,236,.2); color: #3dd5f3; }
 html[data-bs-theme="dark"] .badge-primary-subtle { background: rgba(105,108,255,.2); color: #9b9dff; }
-html[data-bs-theme="dark"] .map-container { background: #1a2035; }
-html[data-bs-theme="dark"] .vehicle-pin-label { background: rgba(0,0,0,.85); }
 html[data-bs-theme="dark"] code { color: #5dcaa5; background: rgba(93,202,165,.08); padding: 1px 5px; border-radius: 4px; }
 html[data-bs-theme="dark"] .alert-info { background: rgba(3,195,236,.1); border-color: rgba(3,195,236,.2); color: #3dd5f3; }
 html[data-bs-theme="dark"] .alert-success { background: rgba(29,158,117,.1); border-color: rgba(29,158,117,.2); color: #5dcaa5; }
@@ -514,6 +467,8 @@ html[data-bs-theme="dark"] [style*="color:#a1acb8"] { color: #7983bb !important;
 html[data-bs-theme="dark"] .dark-toggle { color: #ffc533; border-color: #3a3f5c; }
 html[data-bs-theme="dark"] #navAccountDrop { background:#25273d !important; border-color:#2f3349 !important; }
 html[data-bs-theme="dark"] #navAccountDrop > div { border-color:#2f3349 !important; color:#7983bb !important; }
+html[data-bs-theme="dark"] #notificationDropdown { background:#25273d !important; border-color:#2f3349 !important; }
+html[data-bs-theme="dark"] #notificationDropdown > div { border-color:#2f3349 !important; color:#cfd3ec; }
 html[data-bs-theme="dark"] #searchDropdown { background:#25273d !important; border-color:#2f3349 !important; }
 html[data-bs-theme="dark"] #searchDropdown div { border-color:#2f3349 !important; }
 html[data-bs-theme="dark"] #simSearchDrop { background:#25273d !important; border-color:#2f3349 !important; }
@@ -564,11 +519,10 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
       </div>
     </div>
     <div class="auth-tagline">Manage your fleet,<br>track every vehicle.</div>
-    <p class="auth-desc mt-3">Complete CRM for car tracking, fleet management, fuel monitoring and accessories — built for Kenya.</p>
+    <p class="auth-desc mt-3">Complete CRM for fleet management, vehicle accessories and customer operations — built for Kenya.</p>
     <div class="mt-4">
       <div class="auth-feature"><div class="auth-feature-dot"></div>Vehicle & tracker management</div>
       <div class="auth-feature"><div class="auth-feature-dot"></div>Tracker & SIM card registry with import</div>
-      <div class="auth-feature"><div class="auth-feature-dot"></div>Fuel monitoring & anomaly detection</div>
       <div class="auth-feature"><div class="auth-feature-dot"></div>M-Pesa, PayPal, Visa, Mastercard</div>
       <div class="auth-feature"><div class="auth-feature-dot"></div>Mass email & SMS from customer list</div>
       <div class="auth-feature"><div class="auth-feature-dot"></div>Excel / CSV import across all modules</div>
@@ -586,7 +540,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
       <!-- LOGIN -->
       <div id="loginForm">
         <h5 class="mb-1" style="color:#566a7f;font-weight:700">Welcome back! </h5>
-        <p class="text-muted mb-4" style="font-size:.875rem">Select your account and enter your password</p>
+        <p class="text-muted mb-4" style="font-size:.875rem">Sign in with your registered account</p>
 
        <div class="mb-3">
          <label class="form-label">Email</label>
@@ -597,7 +551,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         <div class="mb-3">
           <div class="d-flex justify-content-between align-items-center">
             <label class="form-label mb-0">Password</label>
-            <a href="#" class="text-muted" style="font-size:.8rem" onclick="showToast('Password reset sent!','success');return false">Forgot password?</a>
+            <a href="#" id="forgotPasswordLink" class="text-muted" style="font-size:.8rem" onclick="doPasswordReset();return false">Forgot password?</a>
           </div>
           <div class="mt-1 input-group">
             <span class="input-group-text"><i class="bx bx-lock-alt"></i></span>
@@ -618,6 +572,12 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         <button class="btn btn-primary w-100" onclick="doLogin()">
           <i class="bx bx-log-in me-2"></i>Sign in to Carace
         </button>
+        <div class="d-flex align-items-center gap-3 my-3 text-muted" style="font-size:.8rem">
+          <span class="flex-grow-1 border-top"></span><span>or</span><span class="flex-grow-1 border-top"></span>
+        </div>
+        <button class="btn btn-outline-secondary w-100" id="googleSignInBtn" type="button" onclick="doGoogleLogin()">
+          <i class="bx bxl-google me-2"></i>Continue with Google
+        </button>
       </div>
 
       <!-- SIGNUP -->
@@ -627,11 +587,11 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         <div class="row g-3 mb-3">
           <div class="col-6">
             <label class="form-label">First name</label>
-            <input type="text" class="form-control" id="sfn" placeholder="James">
+            <input type="text" class="form-control" id="sfn" placeholder="First name">
           </div>
           <div class="col-6">
             <label class="form-label">Last name</label>
-            <input type="text" class="form-control" id="sln" placeholder="Kariuki">
+            <input type="text" class="form-control" id="sln" placeholder="Last name">
           </div>
         </div>
         <div class="mb-3">
@@ -651,6 +611,12 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         </div>
         <button class="btn btn-primary w-100" onclick="doSignup()">
           <i class="bx bx-user-plus me-2"></i>Create account
+        </button>
+        <div class="d-flex align-items-center gap-3 my-3 text-muted" style="font-size:.8rem">
+          <span class="flex-grow-1 border-top"></span><span>or</span><span class="flex-grow-1 border-top"></span>
+        </div>
+        <button class="btn btn-outline-secondary w-100" id="googleSignUpBtn" type="button" onclick="doGoogleLogin()">
+          <i class="bx bxl-google me-2"></i>Sign up with Google
         </button>
       </div>
 
@@ -687,14 +653,11 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
       <li class="menu-header">Operations</li>
       <li class="menu-item active" id="nav-dashboard"><a class="menu-link" href="#" onclick="showScreen('dashboard');return false"><i class="bx bx-grid-alt menu-icon"></i><span>Dashboard</span></a></li>
       <li class="menu-item" id="nav-fleet"><a class="menu-link" href="#" onclick="showScreen('fleet');return false"><i class="bx bx-car menu-icon"></i><span>Fleet vehicles</span></a></li>
-      <li class="menu-item" id="nav-tracking"><a class="menu-link" href="#" onclick="showScreen('tracking');return false"><i class="bx bx-map-pin menu-icon"></i><span>Live tracking</span></a></li>
-      <li class="menu-item" id="nav-fuel"><a class="menu-link" href="#" onclick="showScreen('fuel');return false"><i class="bx bx-gas-pump menu-icon"></i><span>Fuel tracking</span></a></li>
 
       <li class="menu-divider"></li>
       <li class="menu-header">Sales</li>
       <li class="menu-item" id="nav-customers"><a class="menu-link" href="#" onclick="showScreen('customers');return false"><i class="bx bx-user menu-icon"></i><span>Customers</span></a></li>
       <li class="menu-item" id="nav-accessories"><a class="menu-link" href="#" onclick="showScreen('accessories');return false"><i class="bx bx-package menu-icon"></i><span>Accessories</span></a></li>
-      <li class="menu-item" id="nav-receipts"><a class="menu-link" href="#" onclick="showScreen('receipts');return false"><i class="bx bx-receipt menu-icon"></i><span>Payment receipts</span></a></li>
 
       <li class="menu-divider"></li>
       <li class="menu-header">Devices</li>
@@ -757,11 +720,15 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
 
       <!-- Right-side actions -->
       <div class="navbar-actions ms-auto">
-        <button class="btn btn-sm btn-outline-secondary btn-icon position-relative" title="Notifications">
-          <i class="bx bx-bell"></i>
-          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-            style="font-size:9px;padding:3px 5px" id="alertBadge">5</span>
-        </button>
+        <div class="position-relative" id="notificationsWrap">
+          <button class="btn btn-sm btn-outline-secondary btn-icon position-relative" id="notificationsButton" title="Notifications" aria-label="Notifications" aria-controls="notificationDropdown" aria-expanded="false" onclick="toggleNotifications()">
+            <i class="bx bx-bell"></i>
+          </button>
+          <div id="notificationDropdown" aria-hidden="true" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:min(320px,calc(100vw - 24px));background:#fff;border:1px solid var(--card-border,#e7e7ff);border-radius:8px;box-shadow:0 8px 24px rgba(67,89,113,.15);z-index:3000;overflow:hidden">
+            <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;font-weight:600;color:#566a7f">Notifications</div>
+            <div class="text-muted" style="padding:18px 14px;font-size:.875rem">No notifications to display.</div>
+          </div>
+        </div>
         <button class="dark-toggle" id="darkToggleBtn" onclick="toggleDarkMode()" title="Toggle light/dark mode">
           <i class="bx bx-moon" id="darkToggleIcon"></i>
         </button>
@@ -780,7 +747,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           </div>
           <!-- Account dropdown -->
           <div id="navAccountDrop" style="display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:260px;background:#fff;border:1px solid var(--card-border,#e7e7ff);border-radius:10px;box-shadow:0 8px 24px rgba(67,89,113,.15);z-index:3000;overflow:hidden">
-            <div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:.75rem;color:#a1acb8;font-weight:600;letter-spacing:.05em;text-transform:uppercase">Switch account</div>
+            <div style="padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:.75rem;color:#a1acb8;font-weight:600;letter-spacing:.05em;text-transform:uppercase">Signed-in account</div>
             <div id="navAccountItems" style="max-height:300px;overflow-y:auto"></div>
             <div style="padding:10px 12px;border-top:1px solid #f0f0f0">
               <button class="btn btn-sm btn-outline-danger w-100" onclick="doLogout()">
@@ -802,98 +769,33 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
             <h5 class="mb-0" style="color:#566a7f;font-weight:700">Dashboard</h5>
             <small class="text-muted" id="dashDate"></small>
           </div>
-          <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Quick add</button>
+          <button class="btn btn-outline-primary btn-sm" onclick="showScreen('calendar')"><i class="bx bx-calendar me-1"></i>Open calendar</button>
         </div>
 
         <!-- Stats -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon green"><i class="bx bx-car"></i></div>
-            <div>
-              <div class="stat-label">Total vehicles</div>
-              <div class="stat-value"></div>
-              <div class="stat-sub up"><i class="bx bx-up-arrow-alt"></i> </div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon orange"><i class="bx bx-gas-pump"></i></div>
-            <div>
-              <div class="stat-label">Fuel spend (Mar)</div>
-              <div class="stat-value"></div>
-              <div class="stat-sub down"><i class="bx bx-up-arrow-alt"></i> </div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon blue"><i class="bx bx-package"></i></div>
-            <div>
-              <div class="stat-label">Accessories sold</div>
-              <div class="stat-value"></div>
-              <div class="stat-sub up"><i class="bx bx-package"></i></div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon red"><i class="bx bx-bell"></i></div>
-            <div>
-              <div class="stat-label">Active alerts</div>
-              <div class="stat-value text-danger">5</div>
-              <div class="stat-sub down"></div>
-            </div>
-          </div>
+        <div class="stats-grid dashboard-stats-grid">
+          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-car"></i></div><div><div class="stat-label">Vehicles registered</div><div class="stat-value" id="dashboardVehicleCount">Loading</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-group"></i></div><div><div class="stat-label">Customers</div><div class="stat-value" id="dashboardCustomerCount">Loading</div></div></div>
+          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-radar"></i></div><div><div class="stat-label">Trackers in system</div><div class="stat-value" id="dashboardDeviceCount">Loading</div><div class="stat-sub" id="dashboardDeviceSub"></div></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-credit-card"></i></div><div><div class="stat-label">Payments recorded</div><div class="stat-value" id="dashboardPaymentTotal">Loading</div><div class="stat-sub">KES total</div></div></div>
         </div>
 
         <div class="row g-4">
-          <!-- Fleet status -->
           <div class="col-md-6">
             <div class="card h-100">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                Fleet status
-                <span class="badge badge-success-subtle">Live</span>
-              </div>
-              <div class="card-body">
-                <div class="row g-3 mb-3">
-                  <div class="col-6"><div class="p-3 rounded" style="background:#f8f8ff;border-left:4px solid var(--carace-green)"><div class="text-muted" style="font-size:.8rem">Moving</div><div style="font-size:1.25rem;font-weight:700;color:#566a7f">23</div></div></div>
-                  <div class="col-6"><div class="p-3 rounded" style="background:#f8f8ff;border-left:4px solid #696cff"><div class="text-muted" style="font-size:.8rem">Idle</div><div style="font-size:1.25rem;font-weight:700;color:#566a7f">15</div></div></div>
-                  <div class="col-6"><div class="p-3 rounded" style="background:#fff5f5;border-left:4px solid #ff4d49"><div class="text-muted" style="font-size:.8rem">Alerts</div><div style="font-size:1.25rem;font-weight:700;color:#ff4d49">5</div></div></div>
-                  <div class="col-6"><div class="p-3 rounded" style="background:#fff8e6;border-left:4px solid #ffab00"><div class="text-muted" style="font-size:.8rem">In service</div><div style="font-size:1.25rem;font-weight:700;color:#566a7f">5</div></div></div>
-                </div>
-                <div class="card-header px-0 pb-2 pt-0">Recent alerts</div>
-                <div class="table-responsive">
-                  <table class="table">
-                    <thead><tr><th>Vehicle</th><th>Alert</th><th>Time</th></tr></thead>
-                    <tbody>
-                      <tr><td class="fw-semibold">KBZ 441G</td><td><span class="badge badge-danger-subtle">Speeding</span></td><td class="text-muted">14:10 today</td></tr>
-                      <tr><td class="fw-semibold">KDG 882P</td><td><span class="badge badge-danger-subtle">Geofence exit</span></td><td class="text-muted">13:45 today</td></tr>
-                      <tr><td class="fw-semibold">KCA 330M</td><td><span class="badge badge-warning-subtle">Service due</span></td><td class="text-muted">Overdue 3d</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <div class="card-header">Upcoming calendar records <span class="text-muted fw-normal" style="font-size:.8rem">Next 7 days</span></div>
+              <div class="card-body d-flex flex-column gap-2" id="dashboardUpcomingEvents"><div class="text-muted">Loading calendar records...</div></div>
+              <div class="card-body pt-0"><button class="btn btn-sm btn-outline-secondary" onclick="showScreen('calendar')">View calendar</button></div>
             </div>
           </div>
-
-          <!-- Today's schedule -->
           <div class="col-md-6">
             <div class="card h-100">
-              <div class="card-header">Today's schedule</div>
-              <div class="card-body">
-                <div class="d-flex flex-column gap-3">
-                  <div class="p-3 rounded" style="border-left:4px solid #696cff;background:#f8f8ff">
-                    <div class="text-muted" style="font-size:.8rem">10:00 AM</div>
-                    <div class="fw-semibold" style="color:#566a7f">GPS install — James Kariuki</div>
-                    <div class="text-muted" style="font-size:.8rem">Toyota Prado · KBP 220A</div>
-                  </div>
-                  <div class="p-3 rounded" style="border-left:4px solid #ffab00;background:#fff8e6">
-                    <div class="text-muted" style="font-size:.8rem">2:00 PM</div>
-                    <div class="fw-semibold" style="color:#566a7f">Fuel audit — Savanna Logistics</div>
-                    <div class="text-muted" style="font-size:.8rem">8-vehicle fleet review</div>
-                  </div>
-                  <div class="p-3 rounded" style="border-left:4px solid var(--carace-green);background:#f0faf6">
-                    <div class="text-muted" style="font-size:.8rem">4:30 PM</div>
-                    <div class="fw-semibold" style="color:#566a7f">Accessories delivery — Wanjiku</div>
-                    <div class="text-muted" style="font-size:.8rem">Dashcam + seat covers</div>
-                  </div>
-                </div>
-
+              <div class="card-header">Recent payments</div>
+              <div class="table-responsive">
+                <table class="table mb-0">
+                  <thead><tr><th>Customer</th><th>Method / reference</th><th class="text-end">Amount</th></tr></thead>
+                  <tbody id="dashboardRecentPayments"><tr><td colspan="3" class="text-muted">Loading payment records...</td></tr></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -903,18 +805,12 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
       <!-- ── FLEET ── -->
       <div id="screen-fleet" class="screen">
         <div class="d-flex align-items-center justify-content-between mb-4">
-          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Fleet vehicles</h5><small class="text-muted" id="fleetCount">48 vehicles registered</small></div>
+          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Fleet vehicles</h5><small class="text-muted" id="fleetCount">0 vehicles registered</small></div>
           <div class="d-flex gap-2">
             <button class="btn btn-outline-primary btn-sm" onclick="showScreen('import')"><i class="bx bx-import me-1"></i>Import Excel</button>
             <button class="btn btn-outline-secondary btn-sm"><i class="bx bx-export me-1"></i>Export CSV</button>
             <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Add vehicle</button>
           </div>
-        </div>
-        <div class="stats-grid mb-4">
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-car"></i></div><div><div class="stat-label">Total</div><div class="stat-value" id="fleetStatTotal">48</div></div></div>
-          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-wrench"></i></div><div><div class="stat-label">Due service</div><div class="stat-value text-danger">6</div></div></div>
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-tachometer"></i></div><div><div class="stat-label">Avg mileage</div><div class="stat-value">84K km</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-radar"></i></div><div><div class="stat-label">Trackers active</div><div class="stat-value">45</div></div></div>
         </div>
         <div class="card">
           <div class="card-body pb-2">
@@ -938,125 +834,10 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         </div>
       </div>
 
-      <!-- ── LIVE TRACKING ── -->
-      <div id="screen-tracking" class="screen">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Live tracking</h5></div>
-          <span class="badge badge-success-subtle fs-6"><i class="bx bx-radio-circle-marked me-1"></i>Live</span>
-        </div>
-        <div class="card mb-4">
-          <div class="card-body p-0">
-            <div class="map-container">
-              <div class="map-grid-overlay"></div>
-              <!-- Roads -->
-              <div class="map-road-h" style="top:40%;height:6px"></div>
-              <div class="map-road-h" style="top:22%;height:3px;opacity:.6"></div>
-              <div class="map-road-h" style="top:60%;height:3px;opacity:.6"></div>
-              <div class="map-road-v" style="left:42%;width:6px"></div>
-              <div class="map-road-v" style="left:20%;width:3px;opacity:.6"></div>
-              <div class="map-road-v" style="left:65%;width:3px;opacity:.6"></div>
-              <!-- Vehicle pins -->
-              <div class="vehicle-pin" style="left:62%;top:44%">
-                <div class="vehicle-pin-label">KBZ 441G</div>
-                <div class="vehicle-pin-dot pin-alert"></div>
-              </div>
-              <div class="vehicle-pin" style="left:34%;top:52%">
-                <div class="vehicle-pin-label">KCA 330M</div>
-                <div class="vehicle-pin-dot pin-moving"></div>
-              </div>
-              <div class="vehicle-pin" style="left:55%;top:30%">
-                <div class="vehicle-pin-label">KDG 882P</div>
-                <div class="vehicle-pin-dot pin-moving"></div>
-              </div>
-              <div class="vehicle-pin" style="left:22%;top:22%">
-                <div class="vehicle-pin-label">KBP 220A</div>
-                <div class="vehicle-pin-dot pin-idle"></div>
-              </div>
-              <div class="vehicle-pin" style="left:44%;top:15%">
-                <div class="vehicle-pin-label">KDF 770C</div>
-                <div class="vehicle-pin-dot pin-moving"></div>
-              </div>
-              <div class="vehicle-pin" style="left:18%;top:70%">
-                <div class="vehicle-pin-label">KBQ 112R</div>
-                <div class="vehicle-pin-dot pin-offline"></div>
-              </div>
-              <!-- Legend -->
-              <div class="position-absolute bottom-0 start-0 m-2 bg-white rounded p-2 d-flex gap-3" style="font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
-                <span class="d-flex align-items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block"></span>Moving</span>
-                <span class="d-flex align-items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:#696cff;display:inline-block"></span>Idle</span>
-                <span class="d-flex align-items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:#ff4d49;display:inline-block"></span>Alert</span>
-                <span class="d-flex align-items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:#a1acb8;display:inline-block"></span>Offline</span>
-              </div>
-              <div class="position-absolute top-0 start-0 m-2 bg-white rounded px-2 py-1" style="font-size:11px;color:#566a7f;box-shadow:0 2px 8px rgba(0,0,0,.1)"><i class="bx bx-map me-1"></i>Nairobi, Kenya</div>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="table-responsive">
-            <table class="table">
-              <thead><tr><th>Plate</th><th>Driver</th><th>Last location</th><th>Speed</th><th>Status</th><th>Signal</th><th>Updated</th><th>Actions</th></tr></thead>
-              <tbody>
-                <tr><td class="fw-semibold">KBZ 441G</td><td>John Mwema</td><td>Mombasa Rd, Mlolongo</td><td class="text-danger fw-semibold">94 km/h</td><td><span class="badge badge-danger-subtle">Speeding</span></td><td><span style="color:#1D9E75">████</span></td><td class="text-muted">2 min ago</td><td><button class="btn btn-sm btn-outline-primary">Track</button></td></tr>
-                <tr><td class="fw-semibold">KDG 882P</td><td>Peter Njoroge</td><td>Industrial Area, NBI</td><td>52 km/h</td><td><span class="badge badge-success-subtle">Moving</span></td><td><span style="color:#1D9E75">█████</span></td><td class="text-muted">1 min ago</td><td><button class="btn btn-sm btn-outline-primary">Track</button></td></tr>
-                <tr><td class="fw-semibold">KBP 220A</td><td>Grace Achieng</td><td>Westlands, Nairobi</td><td>0 km/h</td><td><span class="badge badge-primary-subtle">Idle</span></td><td><span style="color:#1D9E75">█████</span></td><td class="text-muted">4 min ago</td><td><button class="btn btn-sm btn-outline-primary">Track</button></td></tr>
-                <tr><td class="fw-semibold">KDF 770C</td><td>Samuel Omondi</td><td>Thika Superhighway</td><td>80 km/h</td><td><span class="badge badge-success-subtle">Moving</span></td><td><span style="color:#1D9E75">████</span></td><td class="text-muted">Just now</td><td><button class="btn btn-sm btn-outline-primary">Track</button></td></tr>
-                <tr><td class="fw-semibold">KBQ 112R</td><td class="text-muted">—</td><td class="text-muted">Ngong, last seen</td><td class="text-muted">—</td><td><span class="badge badge-secondary-subtle">Offline</span></td><td class="text-muted">—</td><td class="text-muted">6h ago</td><td><button class="btn btn-sm btn-outline-secondary" disabled>Track</button></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── FUEL TRACKING ── -->
-      <div id="screen-fuel" class="screen">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Fuel tracking</h5></div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary btn-sm" onclick="showScreen('import')"><i class="bx bx-import me-1"></i>Import fuel log</button>
-            <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Log fill-up</button>
-          </div>
-        </div>
-        <div class="stats-grid mb-4">
-          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-gas-pump"></i></div><div><div class="stat-label">Total fuel (Mar)</div><div class="stat-value">3,840 L</div><div class="stat-sub">KES 284,160</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-tachometer"></i></div><div><div class="stat-label">Avg efficiency</div><div class="stat-value">8.2 km/L</div></div></div>
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-car"></i></div><div><div class="stat-label">Top consumer</div><div class="stat-value" style="font-size:1rem">KBZ 441G</div><div class="stat-sub">620 L this month</div></div></div>
-          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-error"></i></div><div><div class="stat-label">Anomalies</div><div class="stat-value text-danger">3</div><div class="stat-sub">Possible theft</div></div></div>
-        </div>
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="card h-100">
-              <div class="card-header">Fuel levels by vehicle</div>
-              <div class="card-body d-flex flex-column gap-3">
-                <div><div class="d-flex justify-content-between mb-1"><span class="fw-semibold" style="font-size:.875rem">KBZ 441G — Isuzu FRR</span><span class="text-danger fw-semibold">18%</span></div><div class="fuel-level"><div class="fuel-fill" style="width:18%;background:#ff4d49"></div></div><small class="text-muted">Critical · Fill required immediately</small></div>
-                <div><div class="d-flex justify-content-between mb-1"><span class="fw-semibold" style="font-size:.875rem">KDG 882P — Mitsubishi Canter</span><span class="text-warning fw-semibold">41%</span></div><div class="fuel-level"><div class="fuel-fill" style="width:41%;background:#ffab00"></div></div><small class="text-muted">Low · Fill this week</small></div>
-                <div><div class="d-flex justify-content-between mb-1"><span class="fw-semibold" style="font-size:.875rem">KBP 220A — Toyota Hilux</span><span style="color:var(--carace-green)" class="fw-semibold">74%</span></div><div class="fuel-level"><div class="fuel-fill" style="width:74%;background:var(--carace-green)"></div></div><small class="text-muted">Good</small></div>
-                <div><div class="d-flex justify-content-between mb-1"><span class="fw-semibold" style="font-size:.875rem">KDF 770C — Nissan Navara</span><span style="color:var(--carace-green)" class="fw-semibold">88%</span></div><div class="fuel-level"><div class="fuel-fill" style="width:88%;background:var(--carace-green)"></div></div><small class="text-muted">Full</small></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="card h-100">
-              <div class="card-header">Recent fill-up log</div>
-              <div class="table-responsive">
-                <table class="table">
-                  <thead><tr><th>Plate</th><th>Litres</th><th>Cost (KES)</th><th>Station · Date</th></tr></thead>
-                  <tbody>
-                    <tr><td class="fw-semibold">KBZ 441G</td><td>120 L</td><td>8,880</td><td class="text-muted">Total Msa Rd · Mar 17</td></tr>
-                    <tr><td class="fw-semibold">KDG 882P</td><td>85 L</td><td>6,290</td><td class="text-muted">Shell Ind. · Mar 16</td></tr>
-                    <tr><td class="fw-semibold">KBP 220A</td><td>60 L</td><td>4,440</td><td class="text-muted">Rubis Westlands · Mar 15</td></tr>
-                    <tr><td class="fw-semibold text-danger">KCA 330M</td><td class="text-danger">140 L</td><td class="text-danger">10,360</td><td><span class="badge badge-danger-subtle">Anomaly detected</span></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- ── CUSTOMERS ── -->
       <div id="screen-customers" class="screen">
         <div class="d-flex align-items-center justify-content-between mb-4">
-          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Customers</h5><small class="text-muted" id="custCount">214 customers</small></div>
+          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Customers</h5><small class="text-muted" id="custCount">0 customers</small></div>
           <div class="d-flex gap-2">
             <button class="btn btn-outline-primary btn-sm" onclick="showScreen('import')"><i class="bx bx-import me-1"></i>Import Excel</button>
             <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Add customer</button>
@@ -1064,9 +845,9 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         </div>
         <div class="stats-grid mb-4">
           <div class="stat-card"><div class="stat-icon green"><i class="bx bx-group"></i></div><div><div class="stat-label">Total customers</div><div class="stat-value" id="custStatTotal">214</div></div></div>
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-car"></i></div><div><div class="stat-label">Fleet clients</div><div class="stat-value">38</div></div></div>
-          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-package"></i></div><div><div class="stat-label">Accessories</div><div class="stat-value">176</div></div></div>
-          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">Renewals due</div><div class="stat-value">9</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-car"></i></div><div><div class="stat-label">Fleet clients</div><div class="stat-value" id="custStatFleet">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-package"></i></div><div><div class="stat-label">Accessory customers</div><div class="stat-value" id="custStatAccessory">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">Renewals due</div><div class="stat-value" id="custStatRenewals">0</div></div></div>
         </div>
         <div class="card">
           <div class="card-body pb-2">
@@ -1102,13 +883,11 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           </div>
         </div>
         <div class="stats-grid mb-4">
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-box"></i></div><div><div class="stat-label">Products in stock</div><div class="stat-value" id="accStatTotal">8</div><div class="stat-sub down">2 low stock</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-shopping-bag"></i></div><div><div class="stat-label">Orders (Mar)</div><div class="stat-value">127</div><div class="stat-sub up">KES 918K</div></div></div>
-          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-wrench"></i></div><div><div class="stat-label">Pending installs</div><div class="stat-value">8</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-star"></i></div><div><div class="stat-label">Top product</div><div class="stat-value" style="font-size:1rem">GPS Tracker</div><div class="stat-sub up">48 sold</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-box"></i></div><div><div class="stat-label">Products in catalogue</div><div class="stat-value" id="accStatTotal">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-package"></i></div><div><div class="stat-label">Units in stock</div><div class="stat-value" id="accStockTotal">0</div></div></div>
         </div>
         <div class="row g-4">
-          <div class="col-md-6">
+          <div class="col-md-12">
             <div class="card">
               <div class="card-header">Product catalogue</div>
               <div class="table-responsive">
@@ -1119,41 +898,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="card">
-              <div class="card-header">Recent orders</div>
-              <div class="table-responsive">
-                <table class="table">
-                  <thead><tr><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead>
-                  <tbody>
-                    <tr><td>James Kariuki</td><td>GPS Tracker × 3</td><td>43,500</td><td><span class="badge badge-success-subtle">Installed</span></td></tr>
-                    <tr><td>Esther Wanjiku</td><td>Dashcam + covers</td><td>11,000</td><td><span class="badge badge-primary-subtle">Pending</span></td></tr>
-                    <tr><td>Grace Achieng</td><td>Fuel sensor × 2</td><td>24,000</td><td><span class="badge badge-success-subtle">Installed</span></td></tr>
-                    <tr><td>Samuel Omondi</td><td>GPS Tracker × 5</td><td>72,500</td><td><span class="badge badge-info-subtle">Scheduled</span></td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <!-- ── PAYMENT RECEIPTS ── -->
-      <div id="screen-receipts" class="screen">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-          <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Payment receipts</h5></div>
-          <div class="d-flex gap-2">
-            <select class="form-select form-select-sm" id="rcptMethod" style="width:170px" onchange="renderReceipts()"><option value="">All methods</option><option>M-Pesa</option><option>PayPal</option><option>Visa</option><option>Mastercard</option><option>Bank cheque</option></select>
-            <input type="text" class="form-control form-control-sm" id="rcptQ" placeholder="Search name or ref..." style="width:180px" oninput="renderReceipts()">
-          </div>
-        </div>
-        <div class="stats-grid mb-4">
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-money"></i></div><div><div class="stat-label">Received (Mar)</div><div class="stat-value">KES 1.4M</div></div></div>
-          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-time-five"></i></div><div><div class="stat-label">Pending</div><div class="stat-value text-danger">KES 217K</div><div class="stat-sub down">3 cheques clearing</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-mobile"></i></div><div><div class="stat-label">M-Pesa (58%)</div><div class="stat-value">KES 812K</div></div></div>
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-credit-card"></i></div><div><div class="stat-label">Card & PayPal</div><div class="stat-value">KES 371K</div></div></div>
-        </div>
-        <div id="receiptList"></div>
       </div>
 
       <!-- ── TRACKERS & SIMs ── -->
@@ -1167,10 +912,8 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           </div>
         </div>
         <div class="stats-grid mb-4">
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-radar"></i></div><div><div class="stat-label">Total trackers</div><div class="stat-value" id="trkTotal">8</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-wifi"></i></div><div><div class="stat-label">Online now</div><div class="stat-value text-success" id="trkOnline">6</div></div></div>
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-chip"></i></div><div><div class="stat-label">SIMs active</div><div class="stat-value">7</div></div></div>
-          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">SIMs expiring</div><div class="stat-value text-danger">2</div><div class="stat-sub down">Within 30 days</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-radar"></i></div><div><div class="stat-label">Tracker records</div><div class="stat-value" id="trkTotal">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-chip"></i></div><div><div class="stat-label">SIM records</div><div class="stat-value" id="trkSIMTotal">0</div></div></div>
         </div>
         <div class="card">
           <div class="card-body pb-2">
@@ -1199,10 +942,10 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addSIMModal"><i class="bx bx-plus me-1"></i>Add SIM card</button>
         </div>
         <div class="stats-grid mb-4">
-          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-chip"></i></div><div><div class="stat-label">Total SIM cards</div><div class="stat-value">9</div></div></div>
-          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-link"></i></div><div><div class="stat-label">Assigned</div><div class="stat-value">7</div></div></div>
-          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-archive"></i></div><div><div class="stat-label">Spare</div><div class="stat-value">2</div></div></div>
-          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">Expiring ≤30 days</div><div class="stat-value text-danger">2</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue"><i class="bx bx-chip"></i></div><div><div class="stat-label">Total SIM cards</div><div class="stat-value" id="simStatTotal">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon green"><i class="bx bx-link"></i></div><div><div class="stat-label">Assigned</div><div class="stat-value" id="simStatAssigned">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon orange"><i class="bx bx-archive"></i></div><div><div class="stat-label">Spare</div><div class="stat-value" id="simStatSpare">0</div></div></div>
+          <div class="stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">Expiring ≤30 days</div><div class="stat-value text-danger" id="simStatExpiring">0</div></div></div>
         </div>
         <div class="card">
           <div class="table-responsive">
@@ -1218,16 +961,16 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
       <div id="screen-calendar" class="screen">
         <div class="d-flex align-items-center justify-content-between mb-4">
           <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Calendar</h5></div>
-          <button class="btn btn-primary btn-sm"><i class="bx bx-plus me-1"></i>Add event</button>
+          <button class="btn btn-outline-secondary btn-sm" title="Refresh calendar records" onclick="calendarState.loadedMonth=null;buildCal()"><i class="bx bx-refresh"></i></button>
         </div>
         <div class="row g-4">
           <div class="col-md-8">
             <div class="card">
               <div class="card-body">
                 <div class="d-flex align-items-center gap-2 mb-3">
-                  <button class="btn btn-sm btn-outline-secondary"><i class="bx bx-chevron-left"></i></button>
-                  <h6 class="mb-0 fw-bold" style="color:#566a7f;flex:1;text-align:center">March 2026</h6>
-                  <button class="btn btn-sm btn-outline-secondary"><i class="bx bx-chevron-right"></i></button>
+                  <button class="btn btn-sm btn-outline-secondary" aria-label="Previous month" onclick="changeCalendarMonth(-1)"><i class="bx bx-chevron-left"></i></button>
+                  <h6 class="mb-0 fw-bold" id="calendarMonth" style="color:#566a7f;flex:1;text-align:center"></h6>
+                  <button class="btn btn-sm btn-outline-secondary" aria-label="Next month" onclick="changeCalendarMonth(1)"><i class="bx bx-chevron-right"></i></button>
                 </div>
                 <div class="cal-grid mb-2">
                   <div class="cal-hdr">Sun</div><div class="cal-hdr">Mon</div><div class="cal-hdr">Tue</div><div class="cal-hdr">Wed</div><div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div>
@@ -1236,7 +979,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
                 <div class="d-flex gap-3 mt-3 flex-wrap">
                   <span style="font-size:11px;display:flex;align-items:center;gap:5px"><span class="cal-event ev-green px-2 py-0" style="display:inline-block;font-size:10px">&#9632;</span> Service/install</span>
                   <span style="font-size:11px;display:flex;align-items:center;gap:5px"><span class="cal-event ev-blue px-2 py-0" style="display:inline-block;font-size:10px">&#9632;</span> Delivery/accessories</span>
-                  <span style="font-size:11px;display:flex;align-items:center;gap:5px"><span class="cal-event ev-orange px-2 py-0" style="display:inline-block;font-size:10px">&#9632;</span> Payment/fuel</span>
+                  <span style="font-size:11px;display:flex;align-items:center;gap:5px"><span class="cal-event ev-orange px-2 py-0" style="display:inline-block;font-size:10px">&#9632;</span> Payment</span>
                   <span style="font-size:11px;display:flex;align-items:center;gap:5px"><span class="cal-event ev-red px-2 py-0" style="display:inline-block;font-size:10px">&#9632;</span> Overdue/alert</span>
                 </div>
               </div>
@@ -1244,21 +987,12 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           </div>
           <div class="col-md-4">
             <div class="card mb-3">
-              <div class="card-header">Today — Mar 18</div>
-              <div class="card-body d-flex flex-column gap-2">
-                <div class="p-2 rounded" style="border-left:4px solid #696cff;background:#f8f8ff"><div class="text-muted" style="font-size:.75rem">10:00 AM</div><div class="fw-semibold" style="font-size:.875rem">GPS install — Kariuki</div></div>
-                <div class="p-2 rounded" style="border-left:4px solid #ffab00;background:#fff8e6"><div class="text-muted" style="font-size:.75rem">2:00 PM</div><div class="fw-semibold" style="font-size:.875rem">Fuel audit — Savanna</div></div>
-                <div class="p-2 rounded" style="border-left:4px solid #ff4d49;background:#fff5f5"><div class="text-muted" style="font-size:.75rem">Overdue</div><div class="fw-semibold" style="font-size:.875rem">KBQ 112R offline</div></div>
-              </div>
+              <div class="card-header" id="calendarSelectedDate">Selected date</div>
+              <div class="card-body d-flex flex-column gap-2" id="calendarSelectedEvents"></div>
             </div>
             <div class="card">
               <div class="card-header">Upcoming</div>
-              <div class="card-body d-flex flex-column gap-2">
-                <div class="d-flex justify-content-between py-1 border-bottom"><span style="font-size:.875rem">KBQ 112R renewal</span><span class="text-muted" style="font-size:.75rem">Mar 20</span></div>
-                <div class="d-flex justify-content-between py-1 border-bottom"><span style="font-size:.875rem">Cheque clearance</span><span class="text-muted" style="font-size:.75rem">Mar 24</span></div>
-                <div class="d-flex justify-content-between py-1 border-bottom"><span style="font-size:.875rem">Fleet review</span><span class="text-muted" style="font-size:.75rem">Mar 28</span></div>
-                <div class="d-flex justify-content-between py-1"><span style="font-size:.875rem">Month-end report</span><span class="text-muted" style="font-size:.75rem">Mar 31</span></div>
-              </div>
+              <div class="card-body d-flex flex-column gap-2" id="calendarUpcomingEvents"></div>
             </div>
           </div>
         </div>
@@ -1344,6 +1078,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
                 <div id="colMapper" style="display:none">
                   <h6 class="fw-semibold mt-3 mb-2" style="color:#566a7f">Map your columns</h6>
                   <p class="text-muted" style="font-size:.875rem">Auto-matched where possible — adjust as needed:</p>
+                  <p class="text-muted" style="font-size:.8rem">Imported records are saved to the configured database and available after reload.</p>
                   <div id="cmg" class="row g-2"></div>
                   <div class="text-muted mt-2" id="prevNote" style="font-size:.8rem"></div>
                   <div class="d-flex gap-2 justify-content-end mt-3">
@@ -1361,7 +1096,6 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
               <div class="card-body d-flex flex-column gap-2">
                 <div class="p-2 rounded" style="border-left:4px solid var(--carace-green);background:#f0faf6"><div class="fw-semibold" style="font-size:.875rem">Vehicles / fleet list</div><div class="text-muted" style="font-size:.8rem">Plate, owner, make, mileage, service date → Fleet tab</div></div>
                 <div class="p-2 rounded" style="border-left:4px solid #696cff;background:#f8f8ff"><div class="fw-semibold" style="font-size:.875rem">Customers / contacts</div><div class="text-muted" style="font-size:.8rem">Name, company, email, phone, vehicle → Customers tab</div></div>
-                <div class="p-2 rounded" style="border-left:4px solid #ffab00;background:#fff8e6"><div class="fw-semibold" style="font-size:.875rem">Fuel logs</div><div class="text-muted" style="font-size:.8rem">Plate, litres, cost, station, date → Fuel tab</div></div>
                 <div class="p-2 rounded" style="border-left:4px solid #ff4d49;background:#fff5f5"><div class="fw-semibold" style="font-size:.875rem">Trackers & SIM cards</div><div class="text-muted" style="font-size:.8rem">IMEI, brand, plate, SIM, ICCID, network → Trackers tab</div></div>
                 <div class="p-2 rounded" style="border-left:4px solid #8592a3;background:#f5f5f9"><div class="fw-semibold" style="font-size:.875rem">Accessories / stock list</div><div class="text-muted" style="font-size:.8rem">Product, price, stock qty → Accessories tab</div></div>
               </div>
@@ -1391,7 +1125,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
                 <thead>
                   <tr>
                     <th style="width:120px">Role</th>
-                    <th>Dashboard</th><th>Fleet / Tracking / Fuel</th><th>Customers / Sales</th>
+                    <th>Dashboard</th><th>Fleet</th><th>Customers / Sales</th>
                     <th>Devices / SIMs</th><th>Payments / Top-up</th><th>Messaging</th><th>Settings / Import</th>
                   </tr>
                 </thead>
@@ -1434,7 +1168,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
                   </tr>
                   <tr>
                     <td><span class="badge role-badge role-devices">Devices</span></td>
-                    <td><i class="bx bx-check text-success"></i></td><td><i class="bx bx-check text-success"></i> <small class="text-muted">(tracking)</small></td>
+                    <td><i class="bx bx-check text-success"></i></td><td class="text-muted"><i class="bx bx-minus"></i></td>
                     <td class="text-muted"><i class="bx bx-minus"></i></td><td><i class="bx bx-check text-success"></i></td>
                     <td class="text-muted"><i class="bx bx-minus"></i></td><td class="text-muted"><i class="bx bx-minus"></i></td>
                     <td class="text-muted"><i class="bx bx-minus"></i></td>
@@ -1468,10 +1202,10 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
             <div class="card mb-3">
               <div class="card-header">Your account</div>
               <div class="card-body text-center">
-                <div class="su-avatar mx-auto mb-2" id="myAccountAvatar" style="width:56px;height:56px;font-size:20px;background:var(--carace-green)">AD</div>
-                <div class="fw-bold" id="myAccountName">Admin</div>
+                <div class="su-avatar mx-auto mb-2" id="myAccountAvatar" style="width:56px;height:56px;font-size:20px;background:var(--carace-green)">U</div>
+                <div class="fw-bold" id="myAccountName">Signed-in user</div>
                 <div class="mt-1" id="myAccountRole"></div>
-                <div class="text-muted mt-1" style="font-size:.8rem" id="myAccountEmail">admin@carace.co.ke</div>
+                <div class="text-muted mt-1" style="font-size:.8rem" id="myAccountEmail"></div>
                 <button class="btn btn-outline-primary btn-sm mt-3 w-100" onclick="openChangePassword()">
                   <i class="bx bx-lock-alt me-1"></i>Change password
                 </button>
@@ -1483,7 +1217,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
               <div class="card-body p-0">
                 <div class="p-3 border-bottom">
                   <div class="d-flex align-items-center gap-2 mb-1"><span class="badge role-badge role-fleet">Fleet</span></div>
-                  <div style="font-size:.8rem;color:#a1acb8">Dashboard, vehicles, live tracking, fuel, import data</div>
+                  <div style="font-size:.8rem;color:#a1acb8">Dashboard, vehicles, import data</div>
                 </div>
                 <div class="p-3 border-bottom">
                   <div class="d-flex align-items-center gap-2 mb-1"><span class="badge role-badge role-finance">Finance</span></div>
@@ -1495,7 +1229,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
                 </div>
                 <div class="p-3 border-bottom">
                   <div class="d-flex align-items-center gap-2 mb-1"><span class="badge role-badge role-devices">Devices</span></div>
-                  <div style="font-size:.8rem;color:#a1acb8">Dashboard, tracking, trackers, SIM cards</div>
+                  <div style="font-size:.8rem;color:#a1acb8">Dashboard, trackers, SIM cards</div>
                 </div>
                 <div class="p-3">
                   <div class="d-flex align-items-center gap-2 mb-1"><span class="badge role-badge role-staff">Staff</span></div>
@@ -1522,10 +1256,10 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
 
         <!-- Stats row -->
         <div class="stats-grid mb-4">
-          <div class="sc stat-card"><div class="stat-icon green"><i class="bx bx-mobile"></i></div><div><div class="stat-label">Top-ups sent (Mar)</div><div class="stat-value" id="topupCount">0</div></div></div>
-          <div class="sc stat-card"><div class="stat-icon blue"><i class="bx bx-money"></i></div><div><div class="stat-label">Total airtime (Mar)</div><div class="stat-value" id="topupTotal">KES 0</div></div></div>
-          <div class="sc stat-card"><div class="stat-icon orange"><i class="bx bx-chip"></i></div><div><div class="stat-label">Active SIM cards</div><div class="stat-value">7</div></div></div>
-          <div class="sc stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">SIMs expiring</div><div class="stat-value text-danger">2</div><div class="stat-sub down">Within 30 days</div></div></div>
+          <div class="sc stat-card"><div class="stat-icon green"><i class="bx bx-mobile"></i></div><div><div class="stat-label">Top-up records</div><div class="stat-value" id="topupCount">0</div></div></div>
+          <div class="sc stat-card"><div class="stat-icon blue"><i class="bx bx-money"></i></div><div><div class="stat-label">Total airtime recorded</div><div class="stat-value" id="topupTotal">KES 0</div></div></div>
+          <div class="sc stat-card"><div class="stat-icon orange"><i class="bx bx-chip"></i></div><div><div class="stat-label">Active SIM cards</div><div class="stat-value" id="topupActiveSims">0</div></div></div>
+          <div class="sc stat-card"><div class="stat-icon red"><i class="bx bx-time"></i></div><div><div class="stat-label">SIMs expiring in 30 days</div><div class="stat-value text-danger" id="topupExpiringSims">0</div></div></div>
         </div>
 
         <div class="row g-4">
@@ -1565,7 +1299,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
                 </div>
                 <div class="alert alert-info mt-3 py-2 mb-0" style="font-size:.8rem">
                   <i class="bx bx-info-circle me-1"></i>
-                  Register at <strong>paykonnect.co.ke</strong> · Sandbox: agentid <code>101</code> / agentpwd <code>demo123</code>
+                  Register at <strong>paykonnect.co.ke</strong> to obtain API credentials.
                 </div>
               </div>
             </div>
@@ -1739,6 +1473,23 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
 
 <!-- ============ MODALS ============ -->
 
+<div class="modal fade" id="recordDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div><h5 class="modal-title" id="recordDetailTitle">Record details</h5><small class="text-muted" id="recordDetailSubtitle"></small></div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body"><div class="row g-3" id="recordDetailFields"></div></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" id="recordDetailCancel" style="display:none" onclick="cancelRecordEdit()">Cancel edit</button>
+        <button class="btn btn-outline-primary" id="recordDetailEdit" onclick="beginRecordEdit()"><i class="bx bx-edit me-1"></i>Edit</button>
+        <button class="btn btn-primary" id="recordDetailSave" style="display:none" onclick="saveRecordEdit()"><i class="bx bx-save me-1"></i>Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Add User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
   <div class="modal-dialog">
@@ -1752,15 +1503,15 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
         <div class="row g-3">
           <div class="col-6">
             <label class="form-label">First name <span class="text-danger">*</span></label>
-            <input class="form-control" id="au-fn" placeholder="James">
+            <input class="form-control" id="au-fn" placeholder="First name">
           </div>
           <div class="col-6">
             <label class="form-label">Last name</label>
-            <input class="form-control" id="au-ln" placeholder="Kariuki">
+            <input class="form-control" id="au-ln" placeholder="Last name">
           </div>
           <div class="col-12">
             <label class="form-label">Email address <span class="text-danger">*</span></label>
-            <input class="form-control" id="au-em" type="email" placeholder="james@carace.co.ke">
+            <input class="form-control" id="au-em" type="email" placeholder="name@company.com">
           </div>
           <div class="col-12">
             <label class="form-label">Password <span class="text-danger" id="auPwRequired">*</span> <small class="text-muted" id="auPwNote" style="display:none">(leave blank to keep current)</small></label>
@@ -1775,7 +1526,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
             <select class="form-select" id="au-role" onchange="previewRoleAccess(this.value)">
               <option value="admin">Admin — full access</option>
               <option value="manager">Manager — all except settings</option>
-              <option value="fleet" selected>Fleet — vehicles, tracking, fuel</option>
+              <option value="fleet" selected>Fleet — vehicles</option>
               <option value="finance">Finance — payments, top-up</option>
               <option value="sales">Sales — customers, accessories</option>
               <option value="devices">Devices — trackers, SIMs</option>
@@ -1784,7 +1535,7 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           </div>
           <div class="col-12">
             <div class="p-2 rounded" id="roleAccessPreview" style="background:#f5f5f9;font-size:.8rem;color:#566a7f">
-              <strong>Fleet access:</strong> Dashboard, Fleet vehicles, Live tracking, Fuel tracking, Calendar
+              <strong>Fleet access:</strong> Dashboard, Fleet vehicles, Calendar
             </div>
           </div>
         </div>
@@ -1911,83 +1662,28 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
 
 <script>
 // ============ DATA ============
-const CRM_FIELDS=['(skip)','plate','owner','make','model','type','mileage','status','service_date','name','company','email','phone','vehicle','litres','cost','station','date','amount','method','ref','product','price','stock','imei','brand','sim_num','iccid','network','dataplan','sim_expiry'];
-const AUTO_MAP={plate:'plate',registration:'plate',regno:'plate',vehicle:'vehicle',owner:'owner',name:'name',fullname:'name',company:'company',email:'email',phone:'phone',mobile:'phone',make:'make',model:'model',type:'type',mileage:'mileage',odometer:'mileage',status:'status',service:'service_date',litres:'litres',liters:'litres',fuel:'litres',cost:'cost',amount:'amount',price:'price',station:'station',date:'date',method:'method',ref:'ref',reference:'ref',product:'product',productname:'product',stock:'stock',quantity:'stock',qty:'stock',imei:'imei',brand:'brand',simnum:'sim_num',simnumber:'sim_num',msisdn:'sim_num',iccid:'iccid',network:'network',carrier:'network',dataplan:'dataplan',plan:'dataplan',expiry:'sim_expiry',simexpiry:'sim_expiry'};
+const CRM_FIELDS=['(skip)','plate','owner','make','model','type','mileage','status','service_date','name','company','email','phone','vehicle','date','event_title','description','amount','method','ref','product','sku','price','stock','imei','brand','sim_num','iccid','network','dataplan','sim_expiry'];
+const AUTO_MAP={plate:'plate',registration:'plate',regno:'plate',registrationnumber:'plate',platenumber:'plate',licenseplate:'plate',vehicle:'vehicle',owner:'owner',name:'name',fullname:'name',customername:'name',contactname:'name',company:'company',companyname:'company',email:'email',emailaddress:'email',phone:'phone',phonenumber:'phone',mobile:'phone',mobilenumber:'phone',make:'make',vehiclemake:'make',model:'model',vehiclemodel:'model',type:'type',mileage:'mileage',odometer:'mileage',status:'status',service:'service_date',servicedate:'service_date',amount:'amount',price:'price',unitprice:'price',date:'date',method:'method',ref:'ref',reference:'ref',product:'product',productname:'product',sku:'sku',itemcode:'sku',stock:'stock',stockquantity:'stock',quantity:'stock',qty:'stock',imei:'imei',trackerimei:'imei',brand:'brand',simnum:'sim_num',simnumber:'sim_num',simphone:'sim_num',simphonenumber:'sim_num',msisdn:'sim_num',iccid:'iccid',network:'network',carrier:'network',dataplan:'dataplan',plan:'dataplan',expiry:'sim_expiry',simexpiry:'sim_expiry',title:'event_title',event:'event_title',description:'description'};
 
-let loggedUser = {name:'Admin',initials:'AD'};
+let loggedUser = {name:'',initials:'',role:'staff'};
 let selectedCusts = [];
 
-let fleetData = [
-  {plate:'KBZ 441G',owner:'Savanna Logistics',make:'Isuzu FRR',type:'Truck',mileage:'142,300 km',status:'Alert',tracker:'Online',service:'Overdue'},
-  {plate:'KCA 330M',owner:'James Kariuki',make:'Toyota Prado',type:'SUV',mileage:'67,800 km',status:'Service',tracker:'Online',service:'Overdue'},
-  {plate:'KDG 882P',owner:'GreenMove KE',make:'Mitsubishi Canter',type:'Van',mileage:'98,200 km',status:'Active',tracker:'Online',service:'Apr 2'},
-  {plate:'KBP 220A',owner:'Esther Wanjiku',make:'Toyota Hilux',type:'Pickup',mileage:'55,100 km',status:'Idle',tracker:'Online',service:'May 10'},
-  {plate:'KDF 770C',owner:'NairobiX Ltd',make:'Nissan Navara',type:'Pickup',mileage:'31,400 km',status:'Active',tracker:'Online',service:'Jun 1'},
-  {plate:'KBQ 112R',owner:'Felix Otieno',make:'Land Cruiser',type:'SUV',mileage:'203,900 km',status:'Offline',tracker:'Offline',service:'Mar 20'},
-];
-
-let custData = [
-  {name:'James Kariuki',company:'Kariuki Haulage',email:'j.kariuki@haulage.co.ke',phone:'+254 722 001 234',type:'Fleet client',vehicles:'12',status:'Active',plate:'KCA 330M'},
-  {name:'Grace Achieng',company:'GreenMove KE',email:'g.achieng@greenmove.ke',phone:'+254 712 445 667',type:'Fleet client',vehicles:'8',status:'Active',plate:'KDG 882P'},
-  {name:'Samuel Omondi',company:'NairobiX Ltd',email:'s.omondi@nairobix.com',phone:'+254 700 889 002',type:'Fleet client',vehicles:'5',status:'Renewal due',plate:'KDF 770C'},
-  {name:'Esther Wanjiku',company:'Individual',email:'e.wanjiku@gmail.com',phone:'+254 711 222 333',type:'Accessories',vehicles:'1',status:'Active',plate:'KBP 220A'},
-  {name:'Felix Otieno',company:'Otieno Safaris',email:'f.otieno@safaris.co.ke',phone:'+254 701 888 444',type:'Fleet client',vehicles:'6',status:'Inactive',plate:'KBQ 112R'},
-];
-
-let accData = [
-  {product:'GPS Tracker (basic)',price:'8,500',stock:34,status:'ok'},
-  {product:'GPS Tracker (advanced)',price:'14,500',stock:18,status:'ok'},
-  {product:'Dashcam (1080p)',price:'6,200',stock:4,status:'low'},
-  {product:'Dashcam (360°)',price:'11,000',stock:9,status:'ok'},
-  {product:'Fuel sensor probe',price:'12,000',stock:11,status:'ok'},
-  {product:'Car alarm system',price:'9,500',stock:7,status:'ok'},
-  {product:'Seat covers (set)',price:'4,800',stock:2,status:'low'},
-  {product:'Tinted film (full)',price:'7,000',stock:0,status:'out'},
-];
-
-let trackers = [
-  {id:1,plate:'KBZ 441G',imei:'359632104728531',brand:'Concox',model:'GT06N',simNum:'+254 722 100 001',iccid:'89254040000012345678',network:'Safaricom',status:'Alert',signal:4,lastSeen:'2 min ago'},
-  {id:2,plate:'KCA 330M',imei:'352904082156749',brand:'Teltonika',model:'FMB120',simNum:'+254 712 100 002',iccid:'89254040000023456789',network:'Safaricom',status:'Online',signal:5,lastSeen:'1 min ago'},
-  {id:3,plate:'KDG 882P',imei:'861108034567812',brand:'Concox',model:'GT06',simNum:'+254 733 100 003',iccid:'89254040000034567890',network:'Airtel',status:'Online',signal:3,lastSeen:'Just now'},
-  {id:4,plate:'KBP 220A',imei:'490154203237518',brand:'Sinotrack',model:'ST-901',simNum:'+254 711 100 004',iccid:'89254040000045678901',network:'Safaricom',status:'Online',signal:5,lastSeen:'4 min ago'},
-  {id:5,plate:'KDF 770C',imei:'357531091234560',brand:'Teltonika',model:'FMB140',simNum:'+254 722 100 005',iccid:'89254040000056789012',network:'Safaricom',status:'Online',signal:4,lastSeen:'Just now'},
-  {id:6,plate:'KBQ 112R',imei:'868996041234501',brand:'TK103',model:'TK103B',simNum:'+254 700 100 006',iccid:'89254040000067890123',network:'Airtel',status:'Offline',signal:0,lastSeen:'6h ago'},
-  {id:7,plate:'KCE 550J',imei:'352848101234572',brand:'Concox',model:'GT06N',simNum:'+254 712 100 007',iccid:'89254040000078901234',network:'Safaricom',status:'Online',signal:4,lastSeen:'3 min ago'},
-  {id:8,plate:'KAB 221Z',imei:'354637100012348',brand:'Sinotrack',model:'ST-906',simNum:'+254 733 100 008',iccid:'89254040000089012345',network:'Airtel',status:'Online',signal:2,lastSeen:'8 min ago'},
-];
-
-let simCards = [
-  {sim:'+254 722 100 001',iccid:'89254040000012345678',network:'Safaricom',plan:'500MB/mo',trackerImei:'359632104728531',trackerLabel:'GT06N · KBZ 441G',expiry:'2026-06-15',status:'active'},
-  {sim:'+254 712 100 002',iccid:'89254040000023456789',network:'Safaricom',plan:'1GB/mo',trackerImei:'352904082156749',trackerLabel:'FMB120 · KCA 330M',expiry:'2026-09-30',status:'active'},
-  {sim:'+254 733 100 003',iccid:'89254040000034567890',network:'Airtel',plan:'500MB/mo',trackerImei:'861108034567812',trackerLabel:'GT06 · KDG 882P',expiry:'2026-04-05',status:'expiring'},
-  {sim:'+254 711 100 004',iccid:'89254040000045678901',network:'Safaricom',plan:'250MB/mo',trackerImei:'490154203237518',trackerLabel:'ST-901 · KBP 220A',expiry:'2026-08-20',status:'active'},
-  {sim:'+254 722 100 005',iccid:'89254040000056789012',network:'Safaricom',plan:'1GB/mo',trackerImei:'357531091234560',trackerLabel:'FMB140 · KDF 770C',expiry:'2026-11-01',status:'active'},
-  {sim:'+254 700 100 006',iccid:'89254040000067890123',network:'Airtel',plan:'250MB/mo',trackerImei:'868996041234501',trackerLabel:'TK103B · KBQ 112R',expiry:'2026-03-25',status:'expiring'},
-  {sim:'+254 712 100 007',iccid:'89254040000078901234',network:'Safaricom',plan:'500MB/mo',trackerImei:'352848101234572',trackerLabel:'GT06N · KCE 550J',expiry:'2026-07-14',status:'active'},
-  {sim:'+254 733 100 008',iccid:'89254040000089012345',network:'Airtel',plan:'250MB/mo',trackerImei:'354637100012348',trackerLabel:'ST-906 · KAB 221Z',expiry:'2026-04-10',status:'active'},
-  {sim:'+254 700 200 099',iccid:'89254040000099123456',network:'Safaricom',plan:'500MB/mo',trackerImei:'',trackerLabel:'— unassigned —',expiry:'2026-12-31',status:'spare'},
-];
-
-const receipts = [
-  {name:'James Kariuki',company:'Kariuki Haulage',plate:'KCA 330M · KBP 220A',for:'GPS Trackers × 3',amount:'KES 139,500',method:'M-Pesa',ref:'QHJ83KLP',date:'Mar 17',status:'paid',initials:'JK',color:'#696cff'},
-  {name:'Grace Achieng',company:'GreenMove KE',plate:'KDG 882P',for:'Fleet subscription',amount:'KES 96,000',method:'Visa',ref:'4*** 8821',date:'Mar 15',status:'paid',initials:'GA',color:'#1D9E75'},
-  {name:'Samuel Omondi',company:'NairobiX Ltd',plate:'KDF 770C',for:'GPS Trackers × 5',amount:'KES 72,500',method:'Bank cheque',ref:'KCB #00482',date:'Mar 13',status:'clearing',initials:'SO',color:'#ffab00'},
-  {name:'Esther Wanjiku',company:'Individual',plate:'KBP 220A',for:'Dashcam + covers',amount:'KES 11,000',method:'M-Pesa',ref:'AKP99XMZ',date:'Mar 12',status:'paid',initials:'EW',color:'#8592a3'},
-  {name:'Felix Otieno',company:'Otieno Safaris',plate:'KBQ 112R',for:'Car alarms × 2',amount:'KES 19,000',method:'PayPal',ref:'PP-7X2MNQ',date:'Mar 10',status:'paid',initials:'FO',color:'#03c3ec'},
-];
+let fleetData = [];
+let custData = [];
+let accData = [];
+let trackers = [];
+let simCards = [];
 
 // ============ ROLE-BASED ACCESS CONTROL (RBAC) ============
 
 // Define which screens each role can access
 const ROLE_ACCESS = {
-  admin:   ['dashboard','fleet','tracking','fuel','customers','accessories','receipts',
-             'trackers','simcards','calendar','messaging','topup','import','settings'],
-  manager: ['dashboard','fleet','tracking','fuel','customers','accessories','receipts',
-             'trackers','simcards','calendar','messaging','topup','import'],
-  fleet:   ['dashboard','fleet','tracking','fuel','calendar','import'],
-  finance: ['dashboard','receipts','topup','payments'],
-  sales:   ['dashboard','customers','accessories','receipts','messaging','calendar','import'],
-  devices: ['dashboard','tracking','trackers','simcards','topup'],
+  admin:   ['dashboard','fleet','customers','accessories','trackers','simcards','calendar','messaging','topup','import','settings'],
+  manager: ['dashboard','fleet','customers','accessories','trackers','simcards','calendar','messaging','topup','import'],
+  fleet:   ['dashboard','fleet','calendar','import'],
+  finance: ['dashboard','topup'],
+  sales:   ['dashboard','customers','accessories','messaging','calendar','import'],
+  devices: ['dashboard','trackers','simcards','topup'],
   staff:   ['dashboard'],
 };
 
@@ -2005,21 +1701,19 @@ const ROLE_COLORS = {
 
 // What each role sees — short description
 const ROLE_ACCESS_DESCRIPTIONS = {
-  admin:   'Dashboard, Fleet, Tracking, Fuel, Customers, Accessories, Payments, Devices, SIMs, Calendar, Messaging, Top-up, Import, Settings',
-  manager: 'Dashboard, Fleet, Tracking, Fuel, Customers, Accessories, Payments, Devices, SIMs, Calendar, Messaging, Top-up, Import',
-  fleet:   'Dashboard, Fleet vehicles, Live tracking, Fuel tracking, Calendar, Import data',
-  finance: 'Dashboard, Payment receipts, Top-up & airtime',
-  sales:   'Dashboard, Customers, Accessories, Payment receipts (view), Messaging, Calendar, Import data',
-  devices: 'Dashboard, Live tracking, Trackers & SIMs, SIM card registry, Top-up & airtime',
+  admin:   'Dashboard, Fleet, Customers, Accessories, Devices, SIMs, Calendar, Messaging, Top-up, Import, Settings',
+  manager: 'Dashboard, Fleet, Customers, Accessories, Devices, SIMs, Calendar, Messaging, Top-up, Import',
+  fleet:   'Dashboard, Fleet vehicles, Calendar, Import data',
+  finance: 'Dashboard, Top-up & airtime',
+  sales:   'Dashboard, Customers, Accessories, Messaging, Calendar, Import data',
+  devices: 'Dashboard, Trackers & SIMs, SIM card registry, Top-up & airtime',
   staff:   'Dashboard only (read-only)',
 };
 
 // In-memory users store (synced to/from API when backend is live)
-let crmUsers = [
-  {id:1, firstName:'Admin', lastName:'Carace', email:'admin@carace.co.ke', role:'admin', phone:'+254 700 000 001', initials:'AC', color:'#696cff'},
-];
+let crmUsers = [];
 
-let currentUserRole = 'admin';
+let currentUserRole = 'staff';
 
 // Apply role permissions — show/hide nav items and redirect if needed
 function applyRBAC(role) {
@@ -2027,8 +1721,8 @@ function applyRBAC(role) {
   const allowed = ROLE_ACCESS[currentUserRole] || ROLE_ACCESS['staff'];
 
   // Show/hide all menu items
-  const allScreens = ['dashboard','fleet','tracking','fuel','customers','accessories',
-    'receipts','trackers','simcards','calendar','messaging','topup','import','settings'];
+  const allScreens = ['dashboard','fleet','customers','accessories',
+    'trackers','simcards','calendar','messaging','topup','import','settings'];
 
   allScreens.forEach(screen => {
     const navEl = document.getElementById('nav-'+screen);
@@ -2245,97 +1939,15 @@ function switchAuth(tab,el) {
 }
 
 // ============ ACCOUNT DROPDOWN ============
-const DEMO_ACCOUNTS = [
-  { email:'admin@carace.co.ke',    password:'password123', firstName:'Admin',   lastName:'Carace',  role:'admin',   color:'#696cff' },
-  { email:'manager@carace.co.ke',  password:'manager123',  firstName:'Manager', lastName:'Demo',    role:'manager', color:'#1D9E75' },
-  { email:'fleet@carace.co.ke',    password:'fleet123',    firstName:'Fleet',   lastName:'Officer', role:'fleet',   color:'#0891b2' },
-  { email:'finance@carace.co.ke',  password:'finance123',  firstName:'Finance', lastName:'Demo',    role:'finance', color:'#b45309' },
-  { email:'sales@carace.co.ke',    password:'sales123',    firstName:'Sales',   lastName:'Demo',    role:'sales',   color:'#dc2626' },
-  { email:'info@carace.co.ke',     password:'info123',     firstName:'Info',    lastName:'Staff',   role:'sales',   color:'#dc2626' },
-  { email:'devices@carace.co.ke',  password:'devices123',  firstName:'Devices', lastName:'Tech',    role:'devices', color:'#475569' },
-  { email:'staff@carace.co.ke',    password:'staff123',    firstName:'Staff',   lastName:'Demo',    role:'staff',   color:'#64748b' },
-];
-
 const ROLE_ACCESS_BRIEF = {
-  admin:   'Full access — all 14 screens',
+  admin:   'Full access — all 13 screens',
   manager: 'All screens except Settings & Users',
-  fleet:   'Dashboard, Fleet, Live tracking, Fuel, Calendar, Import data',
-  finance: 'Dashboard, Payment receipts, Top-up & Airtime',
-  sales:   'Dashboard, Customers, Accessories, Receipts, Messaging, Import data',
-  devices: 'Dashboard, Tracking, Trackers, SIMs, Top-up',
+  fleet:   'Dashboard, Fleet, Calendar, Import data',
+  finance: 'Dashboard, Top-up & Airtime',
+  sales:   'Dashboard, Customers, Accessories, Messaging, Import data',
+  devices: 'Dashboard, Trackers, SIMs, Top-up',
   staff:   'Dashboard only (read-only)',
 };
-
-let selectedAccount = DEMO_ACCOUNTS[0];
-
-function initAccountDropdown() {
-  // Populate both the login-page account list AND the navbar switcher
-  const targets = [
-    document.getElementById('accountItems'),     // login page
-    document.getElementById('navAccountItems'),  // navbar
-  ].filter(Boolean);
-  if(!targets.length) return;
-  const html = DEMO_ACCOUNTS.map((acc,i) => {
-    const initials = (acc.firstName[0] + (acc.lastName?acc.lastName[0]:'')).toUpperCase();
-    const roleLabel = ROLE_LABELS[acc.role] || acc.role;
-    const roleClass = `role-${acc.role}`;
-    return `
-    <div class="acct-item" data-i="${i}"
-      onclick="selectAccount(${i})"
-      style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid #f5f5f9;transition:background .1s"
-      onmouseover="this.style.background='#f8f8ff'" onmouseout="this.style.background=''">
-      <div style="width:32px;height:32px;border-radius:50%;background:${acc.color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0">${initials}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.8125rem;font-weight:600;color:#566a7f">${acc.firstName} ${acc.lastName}</div>
-        <div style="font-size:.75rem;color:#a1acb8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${acc.email}</div>
-      </div>
-      <span class="badge role-badge ${roleClass}" style="flex-shrink:0">${roleLabel}</span>
-    </div>`;
-  }).join('');
-  targets.forEach(el => el.innerHTML = html);
-}
-
-function selectAccount(i) {
-  selectedAccount = DEMO_ACCOUNTS[i];
-  const acc = selectedAccount;
-  const initials = (acc.firstName[0]+(acc.lastName?acc.lastName[0]:'')).toUpperCase();
-  const roleLabel = ROLE_LABELS[acc.role]||acc.role;
-  const roleColors = {
-    admin:'rgba(105,108,255,.15)',manager:'rgba(29,158,117,.15)',fleet:'rgba(3,195,236,.15)',
-    finance:'rgba(255,171,0,.15)',sales:'rgba(255,77,73,.15)',devices:'rgba(161,172,184,.15)',staff:'rgba(100,116,139,.15)'
-  };
-  const roleTextColors = { admin:'#696cff',manager:'#0F6E56',fleet:'#0891b2',finance:'#b45309',sales:'#dc2626',devices:'#475569',staff:'#64748b' };
-
-  document.getElementById('dropAvatar').textContent = initials;
-  document.getElementById('dropAvatar').style.background = acc.color;
-  document.getElementById('dropName').textContent = `${acc.firstName} ${acc.lastName}`;
-  document.getElementById('dropEmail').textContent = acc.email;
-  document.getElementById('dropRole').textContent = roleLabel;
-  document.getElementById('dropRole').style.background = roleColors[acc.role]||'rgba(100,116,139,.15)';
-  document.getElementById('dropRole').style.color = roleTextColors[acc.role]||'#64748b';
-
-  // Update password hint
-  document.getElementById('pwHintText').innerHTML = `Demo password: <strong>${acc.password}</strong>`;
-
-  // Update role preview
-  document.getElementById('rolePreviewTitle').textContent = `${roleLabel} access`;
-  document.getElementById('rolePreviewDesc').textContent = ROLE_ACCESS_BRIEF[acc.role]||'';
-  document.getElementById('rolePreviewBox').style.borderColor = roleTextColors[acc.role]||'#e7e7ff';
-
-  // Close dropdown & clear password field
-  document.getElementById('accountList').style.display = 'none';
-  document.getElementById('dropChevron').style.transform = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginPass').focus();
-}
-
-function toggleAccountDrop() {
-  const list = document.getElementById('accountList');
-  const chevron = document.getElementById('dropChevron');
-  const isOpen = list.style.display !== 'none';
-  list.style.display = isOpen ? 'none' : 'block';
-  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
-}
 
 function togglePwVis() {
   const inp = document.getElementById('loginPass');
@@ -2349,12 +1961,32 @@ function toggleNavAccount() {
   if(!drop) return;
   const isOpen = drop.style.display === 'block';
   drop.style.display = isOpen ? 'none' : 'block';
-  // also populate if empty
-  if(!isOpen) initAccountDropdown();
+}
+
+function toggleNotifications() {
+  const panel = document.getElementById('notificationDropdown');
+  const button = document.getElementById('notificationsButton');
+  if(!panel || !button) return;
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+  panel.setAttribute('aria-hidden', String(isOpen));
+  button.setAttribute('aria-expanded', String(!isOpen));
+}
+
+function closeNotifications() {
+  const panel = document.getElementById('notificationDropdown');
+  const button = document.getElementById('notificationsButton');
+  if(panel) {
+    panel.style.display = 'none';
+    panel.setAttribute('aria-hidden', 'true');
+  }
+  if(button) button.setAttribute('aria-expanded', 'false');
 }
 
 // Close dropdowns when clicking outside
 document.addEventListener('click', e => {
+  const notificationsWrap = document.getElementById('notificationsWrap');
+  if(notificationsWrap && !notificationsWrap.contains(e.target)) closeNotifications();
   // Login page account list
   const acctDrop = document.getElementById('accountDropdown');
   if(acctDrop && !acctDrop.contains(e.target)) {
@@ -2385,60 +2017,28 @@ document.addEventListener('click', e => {
 
 // Allow Enter key to log in from password field
 document.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && document.getElementById('loginPass') === document.activeElement) doLogin();
+  if(e.key === 'Escape') closeNotifications();
+  if(e.key === 'Enter' && document.getElementById('loginPass') === document.activeElement) window.doLogin?.();
 });
 
 // ============ AUTH (RBAC-aware) ============
-function doLogin() {
-  const acc  = selectedAccount;
-  const pass = (document.getElementById('loginPass')?.value||'').trim();
-  if(!pass) { showToast('Please enter your password.','danger'); document.getElementById('loginPass')?.focus(); return; }
-
-  // Try real backend first
-  fetch('/api/auth/login', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ email: acc.email, password: pass })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if(data.error) {
-      // Check against demo password as fallback
-      if(pass === acc.password) {
-        applyLogin(acc.firstName, acc.role, 1, acc.email);
-      } else {
-        showToast('Incorrect password. Try again.','danger');
-        document.getElementById('loginPass').value='';
-        document.getElementById('loginPass').focus();
-      }
-      return;
-    }
-    const u = data.user;
-    applyLogin(u.firstName||acc.firstName, u.role||acc.role, u.id||1, u.email||acc.email);
-  })
-  .catch(() => {
-    // Offline mode — validate against demo password
-    if(pass === acc.password) {
-      applyLogin(acc.firstName, acc.role, Date.now(), acc.email);
-    } else {
-      showToast('Incorrect password. Try again.','danger');
-      document.getElementById('loginPass').value='';
-      document.getElementById('loginPass').focus();
-    }
-  });
-}
-
 function applyLogin(name, role, userId, email) {
   const nm = typeof name==='string' ? name.replace(/[._]/g,' ') : name;
   const initials = nm.split(' ').map(w=>w[0]?.toUpperCase()).join('').slice(0,2)||'U';
   loggedUser = { id:userId, name:nm, initials, role, email };
+  const nameParts = nm.split(' ');
+  crmUsers = [{id:userId,firstName:nameParts[0]||nm,lastName:nameParts.slice(1).join(' '),email,role:role||'staff',initials,color:ROLE_COLORS[role]||'#8592a3'}];
   document.getElementById('menuAvatar').textContent = initials;
   document.getElementById('menuName').textContent = nm;
   document.getElementById('navAvatar').textContent = initials;
   document.getElementById('navName').textContent = nm;
+  const accountItems = document.getElementById('navAccountItems');
+  if(accountItems) accountItems.textContent = `${nm}${email ? ` · ${email}` : ''}`;
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('crmApp').style.display = '';
   applyRBAC(role);
   renderAll();
+  loadSavedRecords();
   renderUsers();
   document.getElementById('dashDate').textContent =
     new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -2468,14 +2068,7 @@ function doSignup() {
     applyLogin(fn, u.role||role, u.id, em);
     showToast(`Welcome ${fn}! You have ${ROLE_LABELS[u.role||role]} access.`,'success');
   })
-  .catch(()=>{
-    // Offline fallback
-    const newId = Date.now();
-    crmUsers.push({id:newId,firstName:fn,lastName:ln,email:em,role,
-      initials:(fn[0]+(ln?ln[0]:'')).toUpperCase(), color:ROLE_COLORS[role]||'#8592a3'});
-    applyLogin(fn, role, newId, em);
-    showToast(`Welcome ${fn}! Signed up as ${ROLE_LABELS[role]}.`,'success');
-  });
+  .catch(()=>showToast('Could not reach the server. Check your connection and try again.','danger'));
 }
 
 function doLogout() {
@@ -2485,8 +2078,8 @@ function doLogout() {
 
 // ============ SCREEN ROUTING ============
 const pageTitles = {
-  dashboard:'Dashboard',fleet:'Fleet vehicles',tracking:'Live tracking',fuel:'Fuel tracking',
-  customers:'Customers',accessories:'Car accessories',receipts:'Payment receipts',
+  dashboard:'Dashboard',fleet:'Fleet vehicles',
+  customers:'Customers',accessories:'Car accessories',
   trackers:'Trackers & SIMs',simcards:'SIM card registry',calendar:'Calendar',
   messaging:'Messaging',import:'Import data',
   topup:'Top-up & Airtime', settings:'Settings & users'
@@ -2508,7 +2101,6 @@ function showScreen(id) {
   const navEl = document.getElementById('nav-'+id);
   if(navEl) navEl.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[id]||id;
-  if(id==='receipts')  renderReceipts();
   if(id==='simcards')  renderSIMs();
   if(id==='trackers')  renderTrackers();
   if(id==='fleet')     renderFleet();
@@ -2517,6 +2109,71 @@ function showScreen(id) {
   if(id==='calendar')  buildCal();
   if(id==='topup')     renderTopupScreen();
   if(id==='settings')  renderUsers();
+}
+
+const recordConfigs = {
+  customer: {title:'Customer', back:'customers', data:custData, render:renderCust, fields:[['name','Full name'],['company','Company'],['email','Email address'],['phone','Phone number'],['type','Customer type'],['vehicles','Vehicles'],['plate','Vehicle plate'],['status','Status']]},
+  fleet: {title:'Vehicle', back:'fleet', data:fleetData, render:renderFleet, fields:[['plate','Plate'],['owner','Owner'],['make','Make'],['type','Vehicle type'],['mileage','Mileage'],['status','Status'],['tracker','Tracker status'],['service','Next service']]},
+  accessory: {title:'Accessory', back:'accessories', data:accData, render:renderAcc, fields:[['product','Product'],['price','Price (KES)'],['stock','Stock quantity','number'],['status','Stock status']]},
+  tracker: {title:'Tracker', back:'trackers', data:trackers, render:renderTrackers, fields:[['plate','Vehicle plate'],['imei','IMEI'],['brand','Brand'],['model','Model'],['simNum','SIM number'],['iccid','ICCID'],['network','Network'],['status','Status'],['signal','Signal strength','number'],['lastSeen','Last seen']]},
+  sim: {title:'SIM card', back:'simcards', data:simCards, render:renderSIMs, fields:[['sim','SIM number'],['iccid','ICCID'],['network','Network'],['plan','Data plan'],['trackerImei','Tracker IMEI'],['trackerLabel','Assigned tracker'],['expiry','Expiry date'],['status','Status']]}
+};
+let activeRecordDetail = null;
+
+function openRecordDetails(type, index, edit = false) {
+  const config = recordConfigs[type];
+  const record = config?.data[index];
+  if(!record) return showToast('That record is no longer available.','warning');
+  activeRecordDetail = {type, index, back:config.back};
+  document.getElementById('recordDetailTitle').textContent = `${config.title} details`;
+  document.getElementById('recordDetailSubtitle').textContent = record.name || record.plate || record.product || record.imei || record.sim || '';
+  renderRecordDetails(false);
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('recordDetailModal')).show();
+  if(edit) beginRecordEdit();
+}
+
+function renderRecordDetails(editing) {
+  if(!activeRecordDetail) return;
+  const config = recordConfigs[activeRecordDetail.type];
+  const record = config.data[activeRecordDetail.index];
+  document.getElementById('recordDetailFields').innerHTML = config.fields.map(([key, label, inputType]) => {
+    const value = record[key] == null ? '' : String(record[key]);
+    const displayValue = value.trim() || '—';
+    return `<div class="col-md-6"><label class="form-label fw-semibold">${escapeCalendarText(label)}</label>${editing
+      ? `<input class="form-control" id="recordField-${key}" type="${inputType || 'text'}" value="${escapeCalendarText(value)}">`
+      : `<div class="py-2 border-bottom">${escapeCalendarText(displayValue)}</div>`}</div>`;
+  }).join('');
+  document.getElementById('recordDetailEdit').style.display = editing ? 'none' : '';
+  document.getElementById('recordDetailSave').style.display = editing ? '' : 'none';
+  document.getElementById('recordDetailCancel').style.display = editing ? '' : 'none';
+}
+
+function beginRecordEdit() {
+  renderRecordDetails(true);
+  document.getElementById('recordDetailFields').querySelector('input')?.focus();
+}
+
+function cancelRecordEdit() {
+  renderRecordDetails(false);
+}
+
+function saveRecordEdit() {
+  if(!activeRecordDetail) return;
+  const config = recordConfigs[activeRecordDetail.type];
+  const record = config.data[activeRecordDetail.index];
+  for(const [key,,inputType] of config.fields) {
+    const input = document.getElementById(`recordField-${key}`);
+    if(input) record[key] = inputType === 'number' ? Number(input.value) || 0 : input.value.trim();
+  }
+  config.render();
+  document.getElementById('recordDetailSubtitle').textContent = record.name || record.plate || record.product || record.imei || record.sim || '';
+  renderRecordDetails(false);
+  showToast(`${config.title} updated.`,'success');
+}
+
+function closeRecordDetails() {
+  activeRecordDetail = null;
+  bootstrap.Modal.getInstance(document.getElementById('recordDetailModal'))?.hide();
 }
 
 // ============ RENDER FUNCTIONS ============
@@ -2530,34 +2187,36 @@ function renderFleet() {
   const q = (document.getElementById('flQ')?.value||'').toLowerCase();
   const sf = document.getElementById('flSf')?.value||'';
   const list = fleetData.filter(r=>(!q||(r.plate+r.owner).toLowerCase().includes(q))&&(!sf||r.status===sf));
-  document.getElementById('fleetBody').innerHTML = list.map(r=>`
+  document.getElementById('fleetBody').innerHTML = list.length ? list.map(r=>`
     <tr>
       <td class="fw-semibold">${r.plate}</td>
       <td>${r.owner}</td><td>${r.make}</td><td>${r.type}</td><td>${r.mileage}</td>
       <td><span class="badge ${statusBadge[r.status]||'badge-secondary-subtle'}">${r.status}</span></td>
       <td><span class="badge ${r.tracker==='Online'?'badge-success-subtle':'badge-secondary-subtle'}">${r.tracker}</span></td>
       <td class="${r.service==='Overdue'?'text-danger fw-semibold':''}">${r.service}</td>
-      <td><button class="btn btn-sm btn-outline-primary">View</button></td>
-    </tr>`).join('');
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('fleet',${fleetData.indexOf(r)})"><i class="bx bx-show me-1"></i>View</button><button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('fleet',${fleetData.indexOf(r)},true)"><i class="bx bx-edit"></i></button></td>
+    </tr>`).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No fleet records yet.</td></tr>';
   document.getElementById('fleetCount').textContent = `${fleetData.length} vehicles registered`;
-  document.getElementById('fleetStatTotal').textContent = fleetData.length;
 }
 
 function renderCust() {
   const q = (document.getElementById('custQ')?.value||'').toLowerCase();
   const t = document.getElementById('custType')?.value||'';
   const list = custData.filter(r=>(!q||(r.name+r.company).toLowerCase().includes(q))&&(!t||r.type===t));
-  document.getElementById('custBody').innerHTML = list.map((r,i)=>`
+  document.getElementById('custBody').innerHTML = list.length ? list.map((r,i)=>`
     <tr>
       <td><input type="checkbox" class="form-check-input cust-chk" data-i="${i}" onchange="updateCustSel()"></td>
       <td class="fw-semibold">${r.name}</td><td>${r.company}</td>
       <td><a href="mailto:${r.email}" class="text-primary">${r.email}</a></td>
       <td>${r.phone}</td><td>${r.type}</td><td>${r.vehicles}</td>
       <td><span class="badge ${statusBadge[r.status]||'badge-secondary-subtle'}">${r.status}</span></td>
-      <td><button class="btn btn-sm btn-outline-primary">View</button></td>
-    </tr>`).join('');
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('customer',${custData.indexOf(r)})"><i class="bx bx-show me-1"></i>View</button><button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('customer',${custData.indexOf(r)},true)"><i class="bx bx-edit"></i></button></td>
+    </tr>`).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No customer records yet. Add a customer or import a customer list.</td></tr>';
   document.getElementById('custCount').textContent = `${custData.length} customers`;
   document.getElementById('custStatTotal').textContent = custData.length;
+  document.getElementById('custStatFleet').textContent = custData.filter(r=>r.type==='Fleet client').length;
+  document.getElementById('custStatAccessory').textContent = custData.filter(r=>r.type==='Accessories').length;
+  document.getElementById('custStatRenewals').textContent = custData.filter(r=>r.status==='Renewal due').length;
   updateCustSel();
 }
 
@@ -2596,13 +2255,14 @@ function goMessaging(type) {
 }
 
 function renderAcc() {
-  document.getElementById('accBody').innerHTML = accData.map(r=>`
+  document.getElementById('accBody').innerHTML = accData.length ? accData.map(r=>`
     <tr>
       <td>${r.product}</td><td>KES ${r.price}</td><td>${r.stock}</td>
       <td><span class="badge ${r.status==='ok'?'badge-success-subtle':r.status==='low'?'badge-warning-subtle':'badge-danger-subtle'}">${r.status==='ok'?'In stock':r.status==='low'?'Low stock':'Out of stock'}</span></td>
-      <td><button class="btn btn-sm btn-outline-primary">Edit</button></td>
-    </tr>`).join('');
+      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('accessory',${accData.indexOf(r)})"><i class="bx bx-show me-1"></i>View</button><button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('accessory',${accData.indexOf(r)},true)"><i class="bx bx-edit"></i></button></td>
+    </tr>`).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">No products yet. Add a product or import stock.</td></tr>';
   document.getElementById('accStatTotal').textContent = accData.length;
+  document.getElementById('accStockTotal').textContent = accData.reduce((total, item)=>total + (Number(item.stock)||0),0);
 }
 
 function sigBars(n) {
@@ -2615,7 +2275,7 @@ function renderTrackers() {
   const sf = document.getElementById('trkSf')?.value||'';
   const bf = document.getElementById('trkBf')?.value||'';
   const list = trackers.filter(t=>(!q||(t.plate+t.imei+t.simNum).toLowerCase().includes(q))&&(!sf||t.status===sf)&&(!bf||t.brand===bf));
-  document.getElementById('trackerBody').innerHTML = list.map(t=>`
+  document.getElementById('trackerBody').innerHTML = list.length ? list.map(t=>`
     <tr>
       <td><input type="checkbox" class="form-check-input"></td>
       <td class="fw-semibold">${t.plate}</td>
@@ -2628,18 +2288,19 @@ function renderTrackers() {
       <td>${sigBars(t.signal)}</td>
       <td class="text-muted" style="font-size:.8rem">${t.lastSeen}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary me-1">Edit</button>
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('tracker',${trackers.indexOf(t)})"><i class="bx bx-show me-1"></i>View</button>
+        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openRecordDetails('tracker',${trackers.indexOf(t)},true)"><i class="bx bx-edit"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="deleteTracker(${t.id})">Del</button>
       </td>
-    </tr>`).join('');
+    </tr>`).join('') : '<tr><td colspan="11" class="text-center text-muted py-4">No tracker records yet. Add a tracker or import a device list.</td></tr>';
   document.getElementById('trkTotal').textContent = trackers.length;
-  document.getElementById('trkOnline').textContent = trackers.filter(t=>t.status!=='Offline').length;
+  document.getElementById('trkSIMTotal').textContent = simCards.length;
 }
 
 function toggleAllTrk(cb) { document.querySelectorAll('#trackerBody input[type=checkbox]').forEach(c=>c.checked=cb.checked); }
 
 function renderSIMs() {
-  document.getElementById('simBody').innerHTML = simCards.map(s=>`
+  document.getElementById('simBody').innerHTML = simCards.length ? simCards.map(s=>`
     <tr>
       <td><code style="font-size:.75rem">${s.sim}</code></td>
       <td><code style="font-size:.7rem;color:#a1acb8">${s.iccid.slice(0,12)}…</code></td>
@@ -2654,81 +2315,112 @@ function renderSIMs() {
       <td><span class="badge ${s.status==='active'?'badge-success-subtle':s.status==='expiring'?'badge-warning-subtle':s.status==='spare'?'badge-primary-subtle':'badge-danger-subtle'}">${s.status}</span></td>
       <td>
         <button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignSIM('${s.sim}')"><i class="bx bx-link me-1"></i>Assign</button>
-        <button class="btn btn-sm btn-outline-secondary">Edit</button>
+        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('sim',${simCards.indexOf(s)})"><i class="bx bx-show me-1"></i>View</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('sim',${simCards.indexOf(s)},true)"><i class="bx bx-edit"></i></button>
       </td>
-    </tr>`).join('');
-}
-
-function renderReceipts() {
-  const m = document.getElementById('rcptMethod')?.value||'';
-  const q = (document.getElementById('rcptQ')?.value||'').toLowerCase();
-  const list = receipts.filter(r=>(!m||r.method===m)&&(!q||r.name.toLowerCase().includes(q)||r.ref.toLowerCase().includes(q)));
-  document.getElementById('receiptList').innerHTML = list.map(r=>`
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-          <div style="width:42px;height:42px;border-radius:50%;background:${r.color}22;color:${r.color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">${r.initials}</div>
-          <div class="flex-grow-1">
-            <div class="fw-semibold" style="font-size:1rem">${r.name}</div>
-            <div class="text-muted" style="font-size:.8rem">${r.company} · ${r.date}</div>
-          </div>
-          <div class="text-end">
-            <div class="fw-bold" style="font-size:1.125rem">${r.amount}</div>
-            <div class="mt-1">
-              <span class="badge badge-info-subtle me-1">${r.method}</span>
-              <span class="badge ${r.status==='paid'?'badge-success-subtle':'badge-warning-subtle'}">${r.status==='paid'?'Paid':'Clearing'}</span>
-            </div>
-          </div>
-        </div>
-        <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded" style="background:#f5f5f9;font-size:.875rem">
-          <i class="bx bx-car text-muted"></i>
-          <span class="fw-semibold">${r.plate}</span>
-          <span class="text-muted">· ${r.for}</span>
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-          <div class="text-muted" style="font-size:.8rem">Ref: <code>${r.ref}</code></div>
-          <button class="btn btn-sm btn-outline-primary">View receipt</button>
-        </div>
-      </div>
-    </div>`).join('');
+    </tr>`).join('') : '<tr><td colspan="8" class="text-center text-muted py-4">No SIM records yet. Add a SIM card to begin.</td></tr>';
+  const today = new Date();
+  const expiringBefore = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
+  document.getElementById('simStatTotal').textContent = simCards.length;
+  document.getElementById('simStatAssigned').textContent = simCards.filter(s=>s.trackerImei).length;
+  document.getElementById('simStatSpare').textContent = simCards.filter(s=>s.status==='spare').length;
+  document.getElementById('simStatExpiring').textContent = simCards.filter(s=>{
+    const expiry = new Date(`${s.expiry}T00:00:00`);
+    return !Number.isNaN(expiry.getTime()) && expiry >= today && expiry <= expiringBefore;
+  }).length;
 }
 
 // ============ CALENDAR ============
-const calEvents = {
-  2:{ev:'KBZ 441G service',cls:'ev-green'},
-  4:{ev:'Tracker install ×3',cls:'ev-blue'},
-  6:{ev:'Fuel audit',cls:'ev-orange'},
-  9:{ev:'KBQ 112R overdue',cls:'ev-red'},
-  11:{ev:'Dashcam delivery',cls:'ev-blue'},
-  15:{ev:'Invoice due',cls:'ev-orange'},
-  18:{ev:'GPS install · Fuel audit',cls:'ev-blue'},
-  20:{ev:'KBQ renewal',cls:'ev-red'},
-  24:{ev:'Cheque clearance',cls:'ev-orange'},
-  28:{ev:'Fleet review',cls:'ev-green'},
-  31:{ev:'Month-end report',cls:'ev-orange'},
-};
+const calendarState = { month: new Date(new Date().getFullYear(), new Date().getMonth(), 1), events: [], selectedDate: new Date(), loadedMonth: null, requestId: 0 };
+
+function changeCalendarMonth(offset) {
+  calendarState.month = new Date(calendarState.month.getFullYear(), calendarState.month.getMonth() + offset, 1);
+  calendarState.selectedDate = new Date(calendarState.month);
+  buildCal();
+}
 
 function buildCal() {
   const grid = document.getElementById('calGrid');
   if(!grid) return;
-  const prevDays = [23,24,25,26,27,28];
-  let html = prevDays.map(d=>`<div class="cal-day other-month"><div class="cal-day-num">${d}</div></div>`).join('');
-  for(let d=1;d<=31;d++) {
-    const ev = calEvents[d];
-    const isToday = d===18;
-    html += `<div class="cal-day${isToday?' today':''}">
-      <div class="cal-day-num" style="${isToday?'color:var(--carace-green);font-weight:700':''}">${d}</div>
-      ${ev?`<div class="cal-event ${ev.cls}">${ev.ev}</div>`:''}
-    </div>`;
+  const year = calendarState.month.getFullYear();
+  const month = calendarState.month.getMonth();
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0);
+  const today = new Date();
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const requestId = ++calendarState.requestId;
+  document.getElementById('calendarMonth').textContent = monthStart.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  const render = () => {
+    let html = '';
+    for(let i = 0; i < monthStart.getDay(); i++) html += '<div class="cal-day other-month"></div>';
+    for(let day = 1; day <= monthEnd.getDate(); day++) {
+      const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayEvents = calendarState.events.filter(event => event.starts_at.slice(0, 10) === dateKey);
+      const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+      const isSelected = calendarState.selectedDate.getFullYear() === year && calendarState.selectedDate.getMonth() === month && calendarState.selectedDate.getDate() === day;
+      const eventMarkup = dayEvents.slice(0, 2).map(event => `<div class="cal-event ev-blue" title="${escapeCalendarText(event.title)}">${escapeCalendarText(event.title)}</div>`).join('');
+      const overflow = dayEvents.length > 2 ? `<div class="text-muted" style="font-size:10px">+${dayEvents.length - 2} more</div>` : '';
+      html += `<div class="cal-day${isToday ? ' today' : ''}" style="${isSelected ? 'outline:2px solid var(--carace-green);outline-offset:-2px;cursor:pointer' : 'cursor:pointer'}" onclick="selectCalendarDate('${dateKey}')">
+        <div class="cal-day-num" style="${isToday ? 'color:var(--carace-green);font-weight:700' : ''}">${day}</div>${eventMarkup}${overflow}
+      </div>`;
+    }
+    const trailingDays = (7 - ((monthStart.getDay() + monthEnd.getDate()) % 7)) % 7;
+    for(let i = 0; i < trailingDays; i++) html += '<div class="cal-day other-month"></div>';
+    grid.innerHTML = html;
+    renderCalendarDetails();
+  };
+
+  if(calendarState.loadedMonth === monthKey) {
+    render();
+    return;
   }
-  grid.innerHTML = html;
+  grid.innerHTML = '<div class="text-muted p-3">Loading calendar records...</div>';
+  fetch(`/api/calendar/events?month=${monthKey}`)
+    .then(response => {
+      if(!response.ok) throw new Error('Could not load calendar records');
+      return response.json();
+    })
+    .then(events => {
+      if(requestId !== calendarState.requestId) return;
+      calendarState.events = events;
+      calendarState.loadedMonth = monthKey;
+      render();
+    })
+    .catch(() => {
+      if(requestId === calendarState.requestId) grid.innerHTML = '<div class="text-danger p-3">Calendar records could not be loaded.</div>';
+    });
+}
+
+function selectCalendarDate(dateKey) {
+  calendarState.selectedDate = new Date(`${dateKey}T00:00:00`);
+  buildCal();
+}
+
+function renderCalendarDetails() {
+  const selectedKey = `${calendarState.selectedDate.getFullYear()}-${String(calendarState.selectedDate.getMonth() + 1).padStart(2, '0')}-${String(calendarState.selectedDate.getDate()).padStart(2, '0')}`;
+  const selectedEvents = calendarState.events.filter(event => event.starts_at.slice(0, 10) === selectedKey);
+  document.getElementById('calendarSelectedDate').textContent = calendarState.selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+  document.getElementById('calendarSelectedEvents').innerHTML = selectedEvents.length
+    ? selectedEvents.map(event => `<div class="py-1 border-bottom"><div class="fw-semibold" style="font-size:.875rem">${escapeCalendarText(event.title)}</div><div class="text-muted" style="font-size:.75rem">${escapeCalendarText(event.customer_name || 'Customer record')} · ${event.starts_at.slice(11, 16)}</div></div>`).join('')
+    : '<div class="text-muted" style="font-size:.875rem">No records for this date.</div>';
+
+  const upcomingEvents = calendarState.events.filter(event => event.starts_at.slice(0, 10) >= selectedKey).slice(0, 5);
+  document.getElementById('calendarUpcomingEvents').innerHTML = upcomingEvents.length
+    ? upcomingEvents.map(event => `<div class="d-flex justify-content-between gap-2 py-1 border-bottom"><span style="font-size:.875rem">${escapeCalendarText(event.title)}</span><span class="text-muted text-nowrap" style="font-size:.75rem">${event.starts_at.slice(8, 10)} ${new Date(`${event.starts_at.slice(0, 10)}T00:00:00`).toLocaleDateString('en-GB', { month: 'short' })}</span></div>`).join('')
+    : '<div class="text-muted" style="font-size:.875rem">No upcoming records this month.</div>';
+}
+
+function escapeCalendarText(value) {
+  return String(value || '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 }
 
 // ============ MESSAGING ============
 function merge(tpl,c) { return tpl.replace(/\{\{(\w+)\}\}/g,(_,k)=>c[k]||''); }
 
 function previewMsg(type) {
-  const c = selectedCusts[0]||{name:'Sample',company:'Sample Co',phone:'+254 700 000 000',plate:'KXX 000X'};
+  if(!selectedCusts.length) { showToast('Select a customer to preview this message.','warning'); return; }
+  const c = selectedCusts[0];
   if(type==='email') {
     const s = merge(document.getElementById('emailSubj').value,c);
     const b = merge(document.getElementById('emailBody').value,c);
@@ -2739,7 +2431,8 @@ function previewMsg(type) {
 }
 
 function sendEmails() {
-  const contacts = selectedCusts.length>0?selectedCusts:custData;
+  const contacts = selectedCusts;
+  if(!contacts.length) { showToast('Select at least one customer first.','warning'); return; }
   const prog = document.getElementById('emailProg'), bar = document.getElementById('emailBar'), log = document.getElementById('emailLog');
   prog.style.display='';
   let i=0;
@@ -2763,7 +2456,8 @@ function smsCount() {
 }
 
 function sendSMS() {
-  const contacts = selectedCusts.length>0?selectedCusts:custData;
+  const contacts = selectedCusts;
+  if(!contacts.length) { showToast('Select at least one customer first.','warning'); return; }
   const via = document.querySelector('input[name=smsvia]:checked')?.value||'gateway';
   const prog = document.getElementById('smsProg'), bar = document.getElementById('smsBar'), log = document.getElementById('smsLog');
   prog.style.display='';
@@ -2792,23 +2486,26 @@ function handleFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     let rows = [];
-    if(file.name.toLowerCase().endsWith('.csv')) {
-      const lines = e.target.result.split('\n').filter(l=>l.trim());
-      fileHeaders = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
-      rows = lines.slice(1).map(line=>{const v=line.split(',').map(x=>x.replace(/^"|"$/g,'').trim());const o={};fileHeaders.forEach((h,i)=>o[h]=v[i]||'');return o;});
-    } else {
-      const wb = XLSX.read(e.target.result,{type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      rows = XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(rows.length) fileHeaders = Object.keys(rows[0]);
+    try {
+      if(typeof XLSX === 'undefined') throw new Error('The spreadsheet reader did not load. Refresh the page and try again.');
+      const workbook = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const sourceRows = XLSX.utils.sheet_to_json(worksheet, {defval:'', raw:false});
+      const sourceHeaders = sourceRows.length ? Object.keys(sourceRows[0]) : [];
+      fileHeaders = sourceHeaders.map(header=>String(header).trim());
+      rows = sourceRows.map(source=>Object.fromEntries(sourceHeaders.map((header,index)=>[fileHeaders[index],source[header]])));
+      if(!fileHeaders.length) throw new Error('The selected file has no header row or data.');
+    } catch(error) {
+      showToast(error.message || 'Could not read this file. Check that it is a valid Excel or CSV file.', 'danger');
+      return;
     }
     importedRows = rows;
     const cmg = document.getElementById('cmg');
-    cmg.innerHTML = fileHeaders.map(h=>{
+    cmg.innerHTML = fileHeaders.map((h,index)=>{
       const k = h.toLowerCase().replace(/[\s_\-\/]/g,'');
       const guess = AUTO_MAP[k]||'(skip)';
-      return `<div class="col-6"><label class="form-label fw-semibold" style="font-size:.8rem">${h}</label>
-        <select class="form-select form-select-sm" id="map-${h.replace(/\W/g,'_')}">
+      return `<div class="col-6"><label class="form-label fw-semibold" style="font-size:.8rem">${escapeCalendarText(h || `Column ${index + 1}`)}</label>
+        <select class="form-select form-select-sm" id="map-${index}">
           ${CRM_FIELDS.map(f=>`<option value="${f}" ${f===guess?'selected':''}>${f==='(skip)'?'— skip —':f}</option>`).join('')}
         </select></div>`;
     }).join('');
@@ -2817,25 +2514,57 @@ function handleFile(file) {
     document.getElementById('colMapper').style.display='';
     document.getElementById('dz').innerHTML = `<i class="bx bx-check-circle" style="font-size:2.5rem;color:var(--carace-green)"></i><div class="fw-semibold mt-2" style="color:var(--carace-green)">✓ File loaded — ${rows.length} rows · ${fileHeaders.length} columns</div><div class="text-muted">${file.name}</div>`;
   };
-  if(file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file);
-  else reader.readAsArrayBuffer(file);
+  reader.onerror = () => showToast('Could not read this file. Try exporting it as CSV or Excel again.', 'danger');
+  reader.readAsArrayBuffer(file);
 }
 
-function doImport() {
+async function doImport() {
+  if(!importedRows.length) { showToast('Select a spreadsheet with data rows first.','warning'); return; }
+  if(importedRows.length > 500) { showToast('Import up to 500 rows at a time. Split this file and try again.','warning'); return; }
   const mapping = {};
-  fileHeaders.forEach(h=>{const el=document.getElementById('map-'+h.replace(/\W/g,'_'));if(el&&el.value!=='(skip)') mapping[h]=el.value;});
-  let addedV=0,addedC=0,addedA=0,addedT=0;
-  importedRows.slice(0,500).forEach(row=>{
-    const m={};fileHeaders.forEach(h=>{if(mapping[h]) m[mapping[h]]=String(row[h]||'');});
-    if(m.imei){trackers.push({id:Date.now()+Math.random(),plate:m.plate||'—',imei:m.imei,brand:m.brand||'Unknown',model:'',simNum:m.sim_num||'—',iccid:m.iccid||'—',network:m.network||'—',status:'Online',signal:3,lastSeen:'Just imported'});addedT++;}
-    else if(m.plate){fleetData.push({plate:m.plate,owner:m.owner||'',make:m.make||'',type:m.type||'',mileage:m.mileage||'',status:'Active',tracker:'Pending',service:m.service_date||'—'});addedV++;}
-    else if(m.name||m.email){custData.push({name:m.name||'',company:m.company||'',email:m.email||'',phone:m.phone||'',type:'Fleet client',vehicles:'—',status:'Active',plate:'—'});addedC++;}
-    else if(m.product){accData.push({product:m.product,price:m.price||'—',stock:parseInt(m.stock)||0,status:'ok'});addedA++;}
+  fileHeaders.forEach((header,index)=>{
+    const element = document.getElementById(`map-${index}`);
+    if(element && element.value!=='(skip)') mapping[header] = element.value;
   });
-  const msg = `✓ Imported: ${addedT} trackers, ${addedV} vehicles, ${addedC} customers, ${addedA} accessories.`;
+  const rows = importedRows.map(row=>{
+    const mapped = {};
+    fileHeaders.forEach(header=>{
+      const field = mapping[header];
+      const value = row[header];
+      if(field && value != null && String(value).trim()!=='') mapped[field] = String(value).trim();
+    });
+    return mapped;
+  });
+
   const ok = document.getElementById('importOk');
-  ok.textContent = msg; ok.style.display='';
-  renderAll(); showToast('Import complete!','success');
+  const button = document.querySelector('#colMapper button.btn-primary');
+  if(button) button.disabled = true;
+  ok.className = 'alert alert-info mt-3';
+  ok.textContent = 'Saving imported records to the database...';
+  ok.style.display = '';
+  try {
+    const csrfResponse = await fetch('/api/csrf-token');
+    if(!csrfResponse.ok) throw new Error('Your session expired. Sign in again and retry the import.');
+    const {csrf_token} = await csrfResponse.json();
+    const response = await fetch('/api/import/commit', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrf_token},
+      body:JSON.stringify({rows})
+    });
+    const result = await response.json();
+    if(!response.ok) throw new Error(result.error || 'The import could not be saved.');
+    const counts = result.counts;
+    ok.className = result.warnings.length ? 'alert alert-warning mt-3' : 'alert alert-success mt-3';
+    ok.textContent = `Saved to database: ${counts.customers} customers, ${counts.vehicles} vehicles, ${counts.trackers} trackers, ${counts.sims} SIMs, ${counts.accessories} accessories, ${counts.payments} payments, ${counts.events} calendar events. ${counts.duplicates} duplicates skipped, ${counts.skipped} unsupported rows skipped.${result.warnings.length ? ` ${result.warnings.slice(0,3).join(' ')}` : ''}`;
+    await loadSavedRecords();
+    showToast('Import saved to the database.','success');
+  } catch(error) {
+    ok.className = 'alert alert-danger mt-3';
+    ok.textContent = error.message || 'Import failed. No rows were saved.';
+    showToast('Import failed.','danger');
+  } finally {
+    if(button) button.disabled = false;
+  }
 }
 
 function cancelImport() {
@@ -2973,7 +2702,6 @@ const searchIndex = () => [
   ...accData.map(a=>({type:'Accessory',icon:'bx-package',label:a.product,sub:`KES ${a.price} · Stock: ${a.stock}`,screen:'accessories',color:'#ffab00'})),
   ...trackers.map(t=>({type:'Tracker',icon:'bx-radar',label:t.imei,sub:`${t.brand} ${t.model} · ${t.plate} · ${t.status}`,screen:'trackers',color:'#03c3ec'})),
   ...simCards.map(s=>({type:'SIM',icon:'bx-chip',label:s.sim,sub:`${s.network} · ${s.plan} · ${s.trackerLabel}`,screen:'simcards',color:'#534AB7'})),
-  ...receipts.map(r=>({type:'Payment',icon:'bx-receipt',label:r.name,sub:`${r.amount} · ${r.method} · ${r.ref}`,screen:'receipts',color:'#ff4d49'})),
 ];
 
 function globalSearch(q) {
@@ -3022,6 +2750,15 @@ const COMMISSIONS = { Safaricom:0.05, Airtel:0.03, Telkom:0.04 };
 const networkOperatorCode = { Safaricom:'SAFPIN', Airtel:'AIRPIN', Telkom:'TELPIN' };
 
 function renderTopupScreen() {
+  const expiringBefore = new Date();
+  expiringBefore.setDate(expiringBefore.getDate() + 30);
+  document.getElementById('topupCount').textContent = topupHistory.length;
+  document.getElementById('topupTotal').textContent = `KES ${topupHistory.reduce((total, entry)=>total + (Number(entry.amount)||0),0).toLocaleString('en-KE')}`;
+  document.getElementById('topupActiveSims').textContent = simCards.filter(sim=>sim.status==='active').length;
+  document.getElementById('topupExpiringSims').textContent = simCards.filter(sim=>{
+    const expiry = new Date(`${sim.expiry}T00:00:00`);
+    return !Number.isNaN(expiry.getTime()) && expiry >= new Date() && expiry <= expiringBefore;
+  }).length;
   // Populate the pick-list dropdown (full list)
   const pick = document.getElementById('simPickList');
   const allSIMs = simCards;
@@ -3429,10 +3166,68 @@ function toggleDarkMode() {
 })();
 
 // ============ INIT ============
+async function loadSavedRecords() {
+  try {
+    const response = await fetch('/api/import/data');
+    const data = await response.json();
+    if(!response.ok) throw new Error(data.error || 'Could not load saved records.');
+    custData = data.customers || [];
+    fleetData = data.vehicles || [];
+    accData = data.accessories || [];
+    trackers = data.trackers || [];
+    simCards = data.sims || [];
+    renderFleet();
+    renderCust();
+    renderAcc();
+    renderTrackers();
+    renderSIMs();
+    populateVehicleDropdowns();
+    renderTopupScreen();
+    calendarState.loadedMonth = null;
+    buildCal();
+    loadDashboardSummary();
+  } catch(error) {
+    showToast(error.message || 'Could not load saved records from the database.','danger');
+  }
+}
+
+async function loadDashboardSummary() {
+  try {
+    const response = await fetch('/api/dashboard/kpis');
+    if(!response.ok) throw new Error('Dashboard records could not be loaded.');
+    const data = await response.json();
+    document.getElementById('dashboardVehicleCount').textContent = data.vehicles;
+    document.getElementById('dashboardCustomerCount').textContent = data.customers;
+    document.getElementById('dashboardDeviceCount').textContent = data.trackers;
+    document.getElementById('dashboardDeviceSub').textContent = `${data.sim_cards} SIMs · ${data.accessory_units} accessory units`;
+    document.getElementById('dashboardPaymentTotal').textContent = Number(data.payments_kes).toLocaleString('en-KE');
+
+    const upcoming = document.getElementById('dashboardUpcomingEvents');
+    upcoming.innerHTML = data.upcoming_events.length
+      ? data.upcoming_events.map(event => {
+          const eventDate = new Date(event.starts_at.replace(' ', 'T'));
+          return `<div class="d-flex justify-content-between align-items-start gap-3 py-2 border-bottom"><div><div class="fw-semibold">${escapeCalendarText(event.title)}</div><div class="text-muted" style="font-size:.8rem">${escapeCalendarText(event.customer_name || 'Customer record')}</div></div><time class="text-muted text-nowrap" style="font-size:.8rem">${eventDate.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${eventDate.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</time></div>`;
+        }).join('')
+      : '<div class="text-muted">No calendar records in the next 7 days.</div>';
+
+    const payments = document.getElementById('dashboardRecentPayments');
+    payments.innerHTML = data.recent_payments.length
+      ? data.recent_payments.map(payment => `<tr><td>${escapeCalendarText(payment.customer_name || 'Unassigned')}</td><td>${escapeCalendarText(payment.method)}<div class="text-muted" style="font-size:.75rem">${escapeCalendarText(payment.reference)}</div></td><td class="text-end text-nowrap">${Number(payment.amount_kes).toLocaleString('en-KE')}</td></tr>`).join('')
+      : '<tr><td colspan="3" class="text-muted">No payment records yet.</td></tr>';
+  } catch(error) {
+    ['dashboardVehicleCount','dashboardCustomerCount','dashboardDeviceCount','dashboardPaymentTotal'].forEach(id => {
+      document.getElementById(id).textContent = 'Unavailable';
+    });
+    document.getElementById('dashboardUpcomingEvents').textContent = 'Calendar records could not be loaded.';
+    document.getElementById('dashboardRecentPayments').innerHTML = '<tr><td colspan="3" class="text-muted">Payment records could not be loaded.</td></tr>';
+  }
+}
+
 function renderAll() {
-  renderFleet(); renderCust(); renderAcc(); renderTrackers(); renderSIMs(); renderReceipts();
+  renderFleet(); renderCust(); renderAcc(); renderTrackers(); renderSIMs();
   populateVehicleDropdowns();
   document.getElementById('dashDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  loadDashboardSummary();
   buildCal();
 }
 
@@ -3440,7 +3235,8 @@ function renderAll() {
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut }
+import { getAuth, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signInWithPopup, linkWithCredential, sendPasswordResetEmail, signOut }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 const auth = getAuth(initializeApp({
@@ -3461,7 +3257,10 @@ const fbMsg = e => ({
   'auth/weak-password': 'Password must be at least 8 characters.',
   'auth/invalid-email': 'Enter a valid email address.',
   'auth/invalid-credential': 'Incorrect email or password.',
-  'auth/too-many-requests': 'Too many attempts. Try again later.'
+  'auth/too-many-requests': 'Too many attempts. Try again later.',
+  'auth/unauthorized-domain': 'This site is not authorized in Firebase Authentication settings.',
+  'auth/popup-blocked': 'Allow pop-ups for this site and try again.',
+  'auth/account-exists-with-different-credential': 'This email already uses password sign-in. Enter your password above to link Google.'
 }[e.code] || 'Something went wrong. Try again.');
 
 function showVerify(email) {
@@ -3474,6 +3273,16 @@ function showVerify(email) {
   document.getElementById('otpCode').focus();
 }
 const finish = u => applyLogin(u.name, u.role, u.id, u.email);
+const shouldRememberSession = () => document.getElementById('rememberMe')?.checked === true;
+
+async function restoreRememberedSession() {
+  try {
+    const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
+    if(response.ok) finish(await response.json());
+  } catch (error) {
+    // Stay on the sign-in page when the backend is unavailable.
+  }
+}
 
 window.doSignup = async () => {
   const fn = val('sfn'), ln = val('sln'), em = val('sem').toLowerCase(), ph = val('sph');
@@ -3495,7 +3304,7 @@ window.doVerify = async () => {
   if (!/^\d{6}$/.test(code)) return showToast('Enter the 6-digit code.', 'danger');
   if (!auth.currentUser) return showToast('Session expired. Sign in again.', 'danger');
   const idToken = await auth.currentUser.getIdToken(true);
-  const r = await post('/api/auth/firebase/verify', { idToken, code });
+  const r = await post('/api/auth/firebase/verify', { idToken, code, remember: shouldRememberSession() });
   if (!r.ok) return showToast(r.data.error || 'Verification failed.', 'danger');
   finish(r.data.user);
 };
@@ -3513,7 +3322,7 @@ window.doLogin = async () => {
   try {
     const cred = await signInWithEmailAndPassword(auth, em, pw);
     const idToken = await cred.user.getIdToken();
-    const r = await post('/api/auth/firebase/login', { idToken });
+    const r = await post('/api/auth/firebase/login', { idToken, remember: shouldRememberSession() });
     if (r.status === 403 && r.data.code === 'unverified') {
       await post('/api/auth/firebase/resend', { idToken });
       showToast('Verify your email to continue.', 'warning');
@@ -3524,11 +3333,68 @@ window.doLogin = async () => {
   } catch (e) { showToast(fbMsg(e), 'danger'); }
 };
 
+window.doPasswordReset = async () => {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  if (!email) {
+    showToast('Enter your email address first.', 'warning');
+    document.getElementById('loginEmail').focus();
+    return;
+  }
+
+  const link = document.getElementById('forgotPasswordLink');
+  if (link) link.style.pointerEvents = 'none';
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showToast('If an account exists for that email, a reset link has been sent.', 'success');
+  } catch (error) {
+    showToast(error.code === 'auth/invalid-email' ? 'Enter a valid email address.' : fbMsg(error), 'danger');
+  } finally {
+    if (link) link.style.pointerEvents = '';
+  }
+};
+
+window.doGoogleLogin = async () => {
+  const buttons = ['googleSignInBtn', 'googleSignUpBtn']
+    .map(id => document.getElementById(id)).filter(Boolean);
+  buttons.forEach(button => button.disabled = true);
+  try {
+    const provider = new GoogleAuthProvider();
+    let result;
+    try {
+      result = await signInWithPopup(auth, provider);
+    } catch (error) {
+      if (error.code !== 'auth/account-exists-with-different-credential') throw error;
+      const pendingCredential = GoogleAuthProvider.credentialFromError(error);
+      const email = error.customData?.email;
+      const password = document.getElementById('loginPass').value || document.getElementById('spw').value;
+      if (!pendingCredential || !email || !password) {
+        throw error;
+      }
+      const existing = await signInWithEmailAndPassword(auth, email, password);
+      result = await linkWithCredential(existing.user, pendingCredential);
+    }
+
+    const idToken = await result.user.getIdToken(true);
+    const response = await post('/api/auth/firebase/google-login', { idToken, remember: shouldRememberSession() });
+    if (!response.ok) {
+      await signOut(auth);
+      return showToast(response.data.error || 'Google sign-in failed.', 'danger');
+    }
+    finish(response.data.user);
+  } catch (error) {
+    showToast(fbMsg(error), 'danger');
+  } finally {
+    buttons.forEach(button => button.disabled = false);
+  }
+};
+
 window.doLogout = async () => {
   await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
   await signOut(auth);
   location.reload();
 };
+
+restoreRememberedSession();
 </script>
 </body>
 </html>

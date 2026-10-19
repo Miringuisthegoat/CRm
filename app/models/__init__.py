@@ -77,16 +77,6 @@ class SIMCard(TimestampMixin, db.Model):
     tracker = db.relationship("Tracker", backref=db.backref("sim_cards", cascade="all, delete-orphan"))
 
 
-class FuelLog(TimestampMixin, db.Model):
-    __tablename__ = "fuel_logs"
-    id = db.Column(db.Integer, primary_key=True)
-    vehicle_id = db.Column(db.Integer, db.ForeignKey("vehicles.id", ondelete="CASCADE"), nullable=False)
-    liters = db.Column(db.Float, nullable=False)
-    cost_kes = db.Column(db.Float, nullable=False)
-    odometer_km = db.Column(db.Float)
-    vehicle = db.relationship("Vehicle", backref=db.backref("fuel_logs", cascade="all, delete-orphan"))
-
-
 class Accessory(TimestampMixin, db.Model):
     __tablename__ = "accessories"
     id = db.Column(db.Integer, primary_key=True)
