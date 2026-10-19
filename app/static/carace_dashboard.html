@@ -2120,17 +2120,90 @@ const recordConfigs = {
 };
 let activeRecordDetail = null;
 
+
+
 function openRecordDetails(type, index, edit = false) {
   const config = recordConfigs[type];
-  const record = config?.data[index];
-  if(!record) return showToast('That record is no longer available.','warning');
-  activeRecordDetail = {type, index, back:config.back};
-  document.getElementById('recordDetailTitle').textContent = `${config.title} details`;
-  document.getElementById('recordDetailSubtitle').textContent = record.name || record.plate || record.product || record.imei || record.sim || '';
-  renderRecordDetails(false);
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('recordDetailModal')).show();
-  if(edit) beginRecordEdit();
+  const record = config?.data?.[index];
+
+  // Check whether the requested record exists
+  if (!config) {
+    console.error('Record configuration not found:', type);
+    return showToast('Record configuration not found.', 'warning');
+  }
+
+  if (!record) {
+    console.error('Record not found:', {
+      type,
+      index,
+      dataLength: config.data?.length,
+      data: config.data
+    });
+
+    return showToast(
+      'That record is no longer available.',
+      'warning'
+    );
+  }
+
+  // Store the selected record
+  activeRecordDetail = {
+    type,
+    index,
+    back: config.back
+  };
+
+  // Get the modal elements
+  const modalElement = document.getElementById('recordDetailModal');
+  const titleElement = document.getElementById('recordDetailTitle');
+  const subtitleElement = document.getElementById('recordDetailSubtitle');
+
+  if (!modalElement || !titleElement || !subtitleElement) {
+    console.error('Record details modal elements are missing.', {
+      modalElement,
+      titleElement,
+      subtitleElement
+    });
+
+    return showToast(
+      'Could not open record details. Modal elements are missing.',
+      'warning'
+    );
+  }
+
+  // Set the modal title
+  titleElement.textContent = `${config.title} details`;
+
+  // Set the record subtitle
+  subtitleElement.textContent =
+    record.name ||
+    record.plate ||
+    record.product ||
+    record.imei ||
+    record.sim ||
+    '';
+
+  try {
+    // Render the record details
+    renderRecordDetails(false);
+
+    // Open the modal
+    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+
+    // Enter edit mode when requested
+    if (edit) {
+      beginRecordEdit();
+    }
+  } catch (error) {
+    console.error('Failed to open record details:', error);
+
+    showToast(
+      'An error occurred while opening record details.',
+      'warning'
+    );
+  }
 }
+
 
 function renderRecordDetails(editing) {
   if(!activeRecordDetail) return;
@@ -3176,6 +3249,15 @@ async function loadSavedRecords() {
     accData = data.accessories || [];
     trackers = data.trackers || [];
     simCards = data.sims || [];
+
+    
+    // Keep record detail configurations synced with the loaded database data
+    recordConfigs.customer.data = custData;
+    recordConfigs.fleet.data = fleetData;
+    recordConfigs.accessory.data = accData;
+    recordConfigs.tracker.data = trackers;
+    recordConfigs.sim.data = simCards;
+
     renderFleet();
     renderCust();
     renderAcc();
