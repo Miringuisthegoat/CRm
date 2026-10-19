@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import math
 import re
 
+from datetime import datetime, timedelta
+from flask import current_app
 from flask import Blueprint, current_app, jsonify, request
 from flask_wtf.csrf import generate_csrf
 
@@ -731,3 +733,137 @@ def lead_intake():
     db.session.add(event)
     db.session.commit()
     return jsonify({"ok": True, "customer_id": customer.id, "event_id": event.id})
+
+    
+# ============ DELETE RECORDS ============
+
+@api_bp.delete("/customers/<int:customer_id>")
+@login_required
+def delete_customer(customer_id):
+    customer = db.session.get(Customer, customer_id)
+
+    if customer is None:
+        return jsonify({"error": "Customer not found."}), 404
+
+    # Protect records linked to vehicles, payments, or calendar events.
+    has_vehicles = Vehicle.query.filter_by(customer_id=customer_id).first()
+    has_payments = Payment.query.filter_by(customer_id=customer_id).first()
+    has_events = CalendarEvent.query.filter_by(customer_id=customer_id).first()
+
+    if has_vehicles or has_payments or has_events:
+        return jsonify({
+            "error": (
+                "This customer has linked vehicles, payments, or calendar "
+                "events. Remove or reassign those records first."
+            )
+        }), 409
+
+    try:
+        db.session.delete(customer)
+        db.session.commit()
+        return jsonify({"ok": True, "message": "Customer deleted."})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Customer deletion failed")
+        return jsonify({"error": "Could not delete customer."}), 500
+
+
+@api_bp.delete("/accessories/<int:accessory_id>")
+@login_required
+def delete_accessory(accessory_id):
+    accessory = db.session.get(Accessory, accessory_id)
+
+    if accessory is None:
+        return jsonify({"error": "Accessory not found."}), 404
+
+    try:
+        db.session.delete(accessory)
+        db.session.commit()
+        return jsonify({"ok": True, "message": "Accessory deleted."})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Accessory deletion failed")
+        return jsonify({"error": "Could not delete accessory."}), 500
+
+
+@api_bp.delete("/sims/<int:sim_id>")
+@login_required
+def delete_sim(sim_id):
+    sim = db.session.get(SIMCard, sim_id)
+
+    if sim is None:
+        return jsonify({"error": "SIM card not found."}), 404
+
+    try:
+        db.session.delete(sim)
+        db.session.commit()
+        return jsonify({"ok": True, "message": "SIM card deleted."})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("SIM card deletion failed")
+        return jsonify({
+            "error": "Could not delete SIM card. Check whether it is referenced elsewhere."
+        }), 500
+
+
+# ============ CREATE CALENDAR EVENTS ============
+
+@api_bp.post("/calendar/events")
+@login_required
+def create_calendar_event():
+    data = request.get_json(silent=True) or {}
+
+    title = str(data.get("title", "")).strip()
+    date_value = str(data.get("date", "")).strip()
+    time_value = str(data.get("time", "09:00")).strip()
+    description = str(data.get("description", "")).strip()
+    customer_id = data.get("customer_id")
+
+    if not title:
+        return jsonify({"error": "Enter an event title."}), 400
+
+    if len(title) > 150:
+        return jsonify({"error": "Event title must be 150 characters or fewer."}), 400
+
+    try:
+        starts_at = datetime.strptime(
+            f"{date_value} {time_value}", "%Y-%m-%d %H:%M"
+        )
+    except ValueError:
+        return jsonify({"error": "Enter a valid event date and time."}), 400
+
+    customer = None
+    if customer_id not in (None, ""):
+        try:
+            customer_id = int(customer_id)
+        except (TypeError, ValueError):
+            return jsonify({"error": "Invalid customer selection."}), 400
+
+        customer = db.session.get(Customer, customer_id)
+        if customer is None:
+            return jsonify({"error": "Selected customer was not found."}), 404
+
+    event = CalendarEvent(
+        title=title,
+        starts_at=starts_at,
+        ends_at=starts_at + timedelta(hours=1),
+        description=description or None,
+        customer_id=customer.id if customer else None,
+    )
+
+    try:
+        db.session.add(event)
+        db.session.commit()
+        return jsonify({
+            "ok": True,
+            "id": event.id,
+            "title": event.title,
+            "starts_at": event.starts_at.isoformat(),
+        }), 201
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Calendar event creation failed")
+        return jsonify({
+            "error": "Could not save event. Check the database model and required fields."
+        }), 500
+

@@ -961,8 +961,14 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
       <div id="screen-calendar" class="screen">
         <div class="d-flex align-items-center justify-content-between mb-4">
           <div><h5 class="mb-0" style="color:#566a7f;font-weight:700">Calendar</h5></div>
+
           <button class="btn btn-outline-secondary btn-sm" title="Refresh calendar records" onclick="calendarState.loadedMonth=null;buildCal()"><i class="bx bx-refresh"></i></button>
+          <button class="btn btn-primary btn-sm" onclick="openAddCalendarEvent()">
+            <i class="bx bx-plus me-1"></i>Add Event
+          </button>
         </div>
+
+        
         <div class="row g-4">
           <div class="col-md-8">
             <div class="card">
@@ -2470,6 +2476,74 @@ async function saveRecordEdit() {
 }
 
 
+async function deleteDatabaseRecord(endpoint, label, recordName, reload) {
+  if (!confirm(`Delete "${recordName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const csrfResponse = await fetch('/api/csrf-token');
+
+    if (!csrfResponse.ok) {
+      throw new Error('Your session may have expired. Sign in again.');
+    }
+
+    const { csrf_token } = await csrfResponse.json();
+
+    const response = await fetch(endpoint, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRFToken': csrf_token
+      }
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.error || `Could not delete ${label}.`);
+    }
+
+    const loaded = await loadSavedRecords();
+
+    if (!loaded) {
+      throw new Error(
+        `${label} was deleted, but the lists could not be refreshed.`
+      );
+    }
+
+    showToast(`${label} deleted successfully.`, 'success');
+    if (typeof reload === 'function') reload();
+  } catch (error) {
+    showToast(error.message || `Could not delete ${label}.`, 'danger');
+  }
+}
+
+function deleteCustomer(id, name) {
+  return deleteDatabaseRecord(
+    `/api/customers/${id}`,
+    'Customer',
+    name || 'customer'
+  );
+}
+
+function deleteAccessory(id, name) {
+  return deleteDatabaseRecord(
+    `/api/accessories/${id}`,
+    'Accessory',
+    name || 'accessory'
+  );
+}
+
+function deleteSIMCard(id, number) {
+  return deleteDatabaseRecord(
+    `/api/sims/${id}`,
+    'SIM card',
+    number || 'SIM card'
+  );
+}
+
+
+
 function closeRecordDetails() {
   activeRecordDetail = null;
   bootstrap.Modal.getInstance(document.getElementById('recordDetailModal'))?.hide();
@@ -2506,14 +2580,22 @@ function renderCust() {
   const t = document.getElementById('custType')?.value||'';
   const list = custData.filter(r=>(!q||(r.name+r.company).toLowerCase().includes(q))&&(!t||r.type===t));
   document.getElementById('custBody').innerHTML = list.length ? list.map((r,i)=>`
-    <tr>
-      <td><input type="checkbox" class="form-check-input cust-chk" data-i="${i}" onchange="updateCustSel()"></td>
-      <td class="fw-semibold">${r.name}</td><td>${r.company}</td>
-      <td><a href="mailto:${r.email}" class="text-primary">${r.email}</a></td>
-      <td>${r.phone}</td><td>${r.type}</td><td>${r.vehicles}</td>
-      <td><span class="badge ${statusBadge[r.status]||'badge-secondary-subtle'}">${r.status}</span></td>
-      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('customer',${custData.indexOf(r)})"><i class="bx bx-show me-1"></i>View</button><button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('customer',${custData.indexOf(r)},true)"><i class="bx bx-edit"></i></button></td>
-    </tr>`).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No customer records yet. Add a customer or import a customer list.</td></tr>';
+    <td>
+  <button class="btn btn-sm btn-outline-primary me-1"
+    onclick="openRecordDetails('customer',${custData.indexOf(r)})">
+    <i class="bx bx-show me-1"></i>View
+  </button>
+
+  <button class="btn btn-sm btn-outline-secondary me-1"
+    onclick="openRecordDetails('customer',${custData.indexOf(r)},true)">
+    <i class="bx bx-edit"></i>
+  </button>
+
+  <button class="btn btn-sm btn-outline-danger"
+    onclick="deleteCustomer(${r.id}, ${JSON.stringify(r.name || 'customer')})">
+    <i class="bx bx-trash"></i>
+  </button>
+    </td>`).join('') : '<tr><td colspan="9" class="text-center text-muted py-4">No customer records yet. Add a customer or import a customer list.</td></tr>';
   document.getElementById('custCount').textContent = `${custData.length} customers`;
   document.getElementById('custStatTotal').textContent = custData.length;
   document.getElementById('custStatFleet').textContent = custData.filter(r=>r.type==='Fleet client').length;
@@ -2558,11 +2640,22 @@ function goMessaging(type) {
 
 function renderAcc() {
   document.getElementById('accBody').innerHTML = accData.length ? accData.map(r=>`
-    <tr>
-      <td>${r.product}</td><td>KES ${r.price}</td><td>${r.stock}</td>
-      <td><span class="badge ${r.status==='ok'?'badge-success-subtle':r.status==='low'?'badge-warning-subtle':'badge-danger-subtle'}">${r.status==='ok'?'In stock':r.status==='low'?'Low stock':'Out of stock'}</span></td>
-      <td><button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('accessory',${accData.indexOf(r)})"><i class="bx bx-show me-1"></i>View</button><button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('accessory',${accData.indexOf(r)},true)"><i class="bx bx-edit"></i></button></td>
-    </tr>`).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">No products yet. Add a product or import stock.</td></tr>';
+    <td>
+  <button class="btn btn-sm btn-outline-primary me-1"
+    onclick="openRecordDetails('accessory',${accData.indexOf(r)})">
+    <i class="bx bx-show me-1"></i>View
+  </button>
+
+  <button class="btn btn-sm btn-outline-secondary me-1"
+    onclick="openRecordDetails('accessory',${accData.indexOf(r)},true)">
+    <i class="bx bx-edit"></i>
+  </button>
+
+  <button class="btn btn-sm btn-outline-danger"
+    onclick="deleteAccessory(${r.id}, ${JSON.stringify(r.product || 'accessory')})">
+    <i class="bx bx-trash"></i>
+  </button>
+    </td>`).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">No products yet. Add a product or import stock.</td></tr>';
   document.getElementById('accStatTotal').textContent = accData.length;
   document.getElementById('accStockTotal').textContent = accData.reduce((total, item)=>total + (Number(item.stock)||0),0);
 }
@@ -2660,24 +2753,27 @@ function toggleAllTrk(cb) { document.querySelectorAll('#trackerBody input[type=c
 
 function renderSIMs() {
   document.getElementById('simBody').innerHTML = simCards.length ? simCards.map(s=>`
-    <tr>
-      <td><code style="font-size:.75rem">${s.sim}</code></td>
-      <td><code style="font-size:.7rem;color:#a1acb8">${s.iccid.slice(0,12)}…</code></td>
-      <td>${s.network}</td><td>${s.plan}</td>
-      <td>
-        ${s.trackerImei
-          ? `<div class="fw-semibold" style="font-size:.875rem">${s.trackerLabel}</div>
-             <div><code style="font-size:.7rem;color:#a1acb8">${s.trackerImei}</code></div>`
-          : `<span class="text-muted fst-italic">— unassigned —</span>`}
-      </td>
-      <td class="${s.status==='expiring'||s.status==='expired'?'text-danger fw-semibold':''}">${s.expiry}</td>
-      <td><span class="badge ${s.status==='active'?'badge-success-subtle':s.status==='expiring'?'badge-warning-subtle':s.status==='spare'?'badge-primary-subtle':'badge-danger-subtle'}">${s.status}</span></td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary me-1" onclick="openAssignSIM('${s.sim}')"><i class="bx bx-link me-1"></i>Assign</button>
-        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('sim',${simCards.indexOf(s)})"><i class="bx bx-show me-1"></i>View</button>
-        <button class="btn btn-sm btn-outline-secondary" onclick="openRecordDetails('sim',${simCards.indexOf(s)},true)"><i class="bx bx-edit"></i></button>
-      </td>
-    </tr>`).join('') : '<tr><td colspan="8" class="text-center text-muted py-4">No SIM records yet. Add a SIM card to begin.</td></tr>';
+    <td>
+  <button class="btn btn-sm btn-outline-primary me-1"
+    onclick="openAssignSIM('${s.sim}')">
+    <i class="bx bx-link me-1"></i>Assign
+  </button>
+
+  <button class="btn btn-sm btn-outline-primary me-1"
+    onclick="openRecordDetails('sim',${simCards.indexOf(s)})">
+    <i class="bx bx-show me-1"></i>View
+  </button>
+
+  <button class="btn btn-sm btn-outline-secondary me-1"
+    onclick="openRecordDetails('sim',${simCards.indexOf(s)},true)">
+    <i class="bx bx-edit"></i>
+  </button>
+
+  <button class="btn btn-sm btn-outline-danger"
+    onclick="deleteSIMCard(${s.id}, ${JSON.stringify(s.sim || 'SIM card')})">
+    <i class="bx bx-trash"></i>
+  </button>
+    </td>`).join('') : '<tr><td colspan="8" class="text-center text-muted py-4">No SIM records yet. Add a SIM card to begin.</td></tr>';
   const today = new Date();
   const expiringBefore = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 30);
   document.getElementById('simStatTotal').textContent = simCards.length;
@@ -2749,6 +2845,94 @@ function buildCal() {
     .catch(() => {
       if(requestId === calendarState.requestId) grid.innerHTML = '<div class="text-danger p-3">Calendar records could not be loaded.</div>';
     });
+}
+
+
+function openAddCalendarEvent() {
+  const date = calendarState.selectedDate || new Date();
+  const dateInput = document.getElementById('newEventDate');
+
+  dateInput.value = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0')
+  ].join('-');
+
+  const customerSelect = document.getElementById('newEventCustomer');
+  customerSelect.innerHTML =
+    '<option value="">No customer linked</option>' +
+    custData.map(c =>
+      `<option value="${c.id}">${escapeCalendarText(c.name)}</option>`
+    ).join('');
+
+  document.getElementById('newEventTitle').value = '';
+  document.getElementById('newEventTime').value = '09:00';
+  document.getElementById('newEventDescription').value = '';
+
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('addCalendarEventModal')
+  ).show();
+}
+
+async function saveCalendarEvent(event) {
+  event.preventDefault();
+
+  const button = document.getElementById('saveCalendarEventBtn');
+  button.disabled = true;
+  button.textContent = 'Saving...';
+
+  try {
+    const csrfResponse = await fetch('/api/csrf-token');
+    if (!csrfResponse.ok) {
+      throw new Error('Your session may have expired. Sign in again.');
+    }
+
+    const { csrf_token } = await csrfResponse.json();
+
+    const payload = {
+      title: document.getElementById('newEventTitle').value.trim(),
+      date: document.getElementById('newEventDate').value,
+      time: document.getElementById('newEventTime').value,
+      customer_id: document.getElementById('newEventCustomer').value || null,
+      description: document.getElementById('newEventDescription').value.trim()
+    };
+
+    const response = await fetch('/api/calendar/events', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf_token
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(result.error || 'Could not save the event.');
+    }
+
+    const eventDate = new Date(`${payload.date}T00:00:00`);
+    calendarState.selectedDate = eventDate;
+    calendarState.month = new Date(
+      eventDate.getFullYear(),
+      eventDate.getMonth(),
+      1
+    );
+    calendarState.loadedMonth = null;
+
+    bootstrap.Modal.getInstance(
+      document.getElementById('addCalendarEventModal')
+    )?.hide();
+
+    buildCal();
+    loadDashboardSummary();
+    showToast('Calendar event saved successfully.', 'success');
+  } catch (error) {
+    showToast(error.message || 'Could not save calendar event.', 'danger');
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Save Event';
+  }
 }
 
 function selectCalendarDate(dateKey) {
@@ -3773,5 +3957,53 @@ window.doLogout = async () => {
 
 restoreRememberedSession();
 </script>
+
+<div class="modal fade" id="addCalendarEventModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form class="modal-content" onsubmit="saveCalendarEvent(event)">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Calendar Event</h5>
+        <button type="button" class="btn-close"
+          data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="newEventTitle" class="form-label">Event title</label>
+          <input id="newEventTitle" class="form-control" maxlength="150" required>
+        </div>
+        <div class="row">
+          <div class="col-md-7 mb-3">
+            <label for="newEventDate" class="form-label">Date</label>
+            <input id="newEventDate" type="date" class="form-control" required>
+          </div>
+          <div class="col-md-5 mb-3">
+            <label for="newEventTime" class="form-label">Time</label>
+            <input id="newEventTime" type="time" class="form-control"
+              value="09:00" required>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="newEventCustomer" class="form-label">Customer (optional)</label>
+          <select id="newEventCustomer" class="form-select">
+            <option value="">No customer linked</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="newEventDescription" class="form-label">Description</label>
+          <textarea id="newEventDescription" class="form-control"
+            rows="3" maxlength="2000"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary"
+          data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" id="saveCalendarEventBtn" class="btn btn-primary">
+          Save Event
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
