@@ -2112,12 +2112,97 @@ function showScreen(id) {
 }
 
 const recordConfigs = {
-  customer: {title:'Customer', back:'customers', data:custData, render:renderCust, fields:[['name','Full name'],['company','Company'],['email','Email address'],['phone','Phone number'],['type','Customer type'],['vehicles','Vehicles'],['plate','Vehicle plate'],['status','Status']]},
-  fleet: {title:'Vehicle', back:'fleet', data:fleetData, render:renderFleet, fields:[['plate','Plate'],['owner','Owner'],['make','Make'],['type','Vehicle type'],['mileage','Mileage'],['status','Status'],['tracker','Tracker status'],['service','Next service']]},
-  accessory: {title:'Accessory', back:'accessories', data:accData, render:renderAcc, fields:[['product','Product'],['price','Price (KES)'],['stock','Stock quantity','number'],['status','Stock status']]},
-  tracker: {title:'Tracker', back:'trackers', data:trackers, render:renderTrackers, fields:[['plate','Vehicle plate'],['imei','IMEI'],['brand','Brand'],['model','Model'],['simNum','SIM number'],['iccid','ICCID'],['network','Network'],['status','Status'],['signal','Signal strength','number'],['lastSeen','Last seen']]},
-  sim: {title:'SIM card', back:'simcards', data:simCards, render:renderSIMs, fields:[['sim','SIM number'],['iccid','ICCID'],['network','Network'],['plan','Data plan'],['trackerImei','Tracker IMEI'],['trackerLabel','Assigned tracker'],['expiry','Expiry date'],['status','Status']]}
+    customer: {
+        title: 'Customer',
+        back: 'customers',
+        data: custData,
+        render: renderCust,
+        endpoint: record => `/api/customers/${record.id}`,
+        fields: [
+            ['name', 'Full name', 'text', true, 'full_name'],
+            ['company', 'Company', 'text', true, 'notes'],
+            ['email', 'Email address', 'email', true, 'email'],
+            ['phone', 'Phone number', 'tel', true, 'phone'],
+            ['type', 'Customer type', 'text', false],
+            ['vehicles', 'Vehicles', 'text', false],
+            ['plate', 'Vehicle plate', 'text', false],
+            ['status', 'Status', 'text', false]
+        ]
+    },
+
+    fleet: {
+        title: 'Vehicle',
+        back: 'fleet',
+        data: fleetData,
+        render: renderFleet,
+        endpoint: record => `/api/vehicles/${record.id}`,
+        fields: [
+            ['plate', 'Plate', 'text', true, 'plate_number'],
+            ['owner', 'Owner', 'text', false],
+            ['make', 'Make', 'text', true, 'make'],
+            ['model', 'Model', 'text', true, 'model'],
+            ['network', 'Network', 'text', true, 'network'],
+            ['type', 'Vehicle type', 'text', false],
+            ['mileage', 'Mileage', 'text', false],
+            ['status', 'Status', 'text', false],
+            ['tracker', 'Tracker status', 'text', false],
+            ['service', 'Next service', 'text', false]
+        ]
+    },
+
+    accessory: {
+        title: 'Accessory',
+        back: 'accessories',
+        data: accData,
+        render: renderAcc,
+        endpoint: record => `/api/accessories/${record.id}`,
+        fields: [
+            ['product', 'Product', 'text', true, 'name'],
+            ['price', 'Price (KES)', 'number', true, 'price_kes'],
+            ['stock', 'Stock quantity', 'number', true, 'quantity'],
+            ['status', 'Stock status', 'text', false]
+        ]
+    },
+
+    tracker: {
+        title: 'Tracker',
+        back: 'trackers',
+        data: trackers,
+        render: renderTrackers,
+        endpoint: record => `/api/trackers/${record.id}`,
+        fields: [
+            ['plate', 'Vehicle plate', 'text', false],
+            ['imei', 'IMEI', 'text', true, 'imei'],
+            ['brand', 'Brand', 'text', false],
+            ['model', 'Model', 'text', false],
+            ['simNum', 'SIM number', 'text', false],
+            ['iccid', 'ICCID', 'text', false],
+            ['network', 'Network', 'text', false],
+            ['status', 'Status', 'text', true, 'status'],
+            ['signal', 'Signal strength', 'number', false],
+            ['lastSeen', 'Last seen', 'text', false]
+        ]
+    },
+
+    sim: {
+        title: 'SIM card',
+        back: 'simcards',
+        data: simCards,
+        render: renderSIMs,
+        endpoint: record => `/api/sims/${record.id}`,
+        fields: [
+            ['sim', 'SIM number', 'tel', true, 'phone_number'],
+            ['iccid', 'ICCID', 'text', true, 'iccid'],
+            ['network', 'Network', 'text', true, 'provider'],
+            ['plan', 'Data plan', 'text', false],
+            ['trackerImei', 'Tracker IMEI', 'text', false],
+            ['trackerLabel', 'Assigned tracker', 'text', false],
+            ['expiry', 'Expiry date', 'text', false],
+            ['status', 'Status', 'text', false]
+        ]
+    }
 };
+
 let activeRecordDetail = null;
 
 
@@ -2205,21 +2290,54 @@ function openRecordDetails(type, index, edit = false) {
 }
 
 
+
 function renderRecordDetails(editing) {
-  if(!activeRecordDetail) return;
+  if (!activeRecordDetail) return;
+
   const config = recordConfigs[activeRecordDetail.type];
-  const record = config.data[activeRecordDetail.index];
-  document.getElementById('recordDetailFields').innerHTML = config.fields.map(([key, label, inputType]) => {
-    const value = record[key] == null ? '' : String(record[key]);
-    const displayValue = value.trim() || '—';
-    return `<div class="col-md-6"><label class="form-label fw-semibold">${escapeCalendarText(label)}</label>${editing
-      ? `<input class="form-control" id="recordField-${key}" type="${inputType || 'text'}" value="${escapeCalendarText(value)}">`
-      : `<div class="py-2 border-bottom">${escapeCalendarText(displayValue)}</div>`}</div>`;
-  }).join('');
-  document.getElementById('recordDetailEdit').style.display = editing ? 'none' : '';
-  document.getElementById('recordDetailSave').style.display = editing ? '' : 'none';
-  document.getElementById('recordDetailCancel').style.display = editing ? '' : 'none';
+  const record = config?.data?.[activeRecordDetail.index];
+
+  if (!record) {
+    showToast('Record not found. Reload the record and try again.', 'danger');
+    return;
+  }
+
+  document.getElementById('recordDetailFields').innerHTML =
+    config.fields.map(([key, label, inputType, editable = true]) => {
+      const value = record[key] == null ? '' : String(record[key]);
+      const displayValue = value.trim() || '—';
+
+      const canEdit = editing && editable !== false;
+
+      return `
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">
+            ${escapeCalendarText(label)}
+          </label>
+          ${
+            canEdit
+              ? `<input
+                   class="form-control"
+                   id="recordField-${key}"
+                   type="${inputType || 'text'}"
+                   value="${escapeCalendarText(value)}">`
+              : `<div class="py-2 border-bottom">
+                   ${escapeCalendarText(displayValue)}
+                 </div>`
+          }
+        </div>`;
+    }).join('');
+
+  document.getElementById('recordDetailEdit').style.display =
+    editing ? 'none' : '';
+
+  document.getElementById('recordDetailSave').style.display =
+    editing ? '' : 'none';
+
+  document.getElementById('recordDetailCancel').style.display =
+    editing ? '' : 'none';
 }
+
 
 function beginRecordEdit() {
   renderRecordDetails(true);
@@ -2230,19 +2348,127 @@ function cancelRecordEdit() {
   renderRecordDetails(false);
 }
 
-function saveRecordEdit() {
-  if(!activeRecordDetail) return;
-  const config = recordConfigs[activeRecordDetail.type];
-  const record = config.data[activeRecordDetail.index];
-  for(const [key,,inputType] of config.fields) {
-    const input = document.getElementById(`recordField-${key}`);
-    if(input) record[key] = inputType === 'number' ? Number(input.value) || 0 : input.value.trim();
+
+async function saveRecordEdit() {
+  if (!activeRecordDetail) return;
+
+  const type = activeRecordDetail.type;
+  const config = recordConfigs[type];
+  const originalRecord = config?.data?.[activeRecordDetail.index];
+
+  if (!config || !originalRecord || originalRecord.id == null) {
+    showToast('This record has no database ID. Reload the records first.', 'danger');
+    return;
   }
-  config.render();
-  document.getElementById('recordDetailSubtitle').textContent = record.name || record.plate || record.product || record.imei || record.sim || '';
-  renderRecordDetails(false);
-  showToast(`${config.title} updated.`,'success');
+
+  const saveButton = document.getElementById('recordDetailSave');
+  const recordId = originalRecord.id;
+  const payload = {};
+
+  for (const [key, , inputType, editable = true, apiKey = key] of config.fields) {
+    if (editable === false) continue;
+
+    const input = document.getElementById(`recordField-${key}`);
+    if (!input) continue;
+
+    const value = input.value.trim();
+
+    if (inputType === 'number') {
+      if (value === '' || !Number.isFinite(Number(value))) {
+        showToast(`Enter a valid number for ${key}.`, 'danger');
+        input.focus();
+        return;
+      }
+
+      payload[apiKey] = Number(value);
+    } else {
+      payload[apiKey] = value;
+    }
+  }
+
+  if (!Object.keys(payload).length) {
+    showToast('There are no editable fields to save.', 'warning');
+    return;
+  }
+
+  try {
+    saveButton.disabled = true;
+    saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    // Obtain a CSRF token, as the existing import flow does.
+    const csrfResponse = await fetch('/api/csrf-token');
+
+    if (!csrfResponse.ok) {
+      throw new Error('Your session may have expired. Sign in again.');
+    }
+
+    const { csrf_token } = await csrfResponse.json();
+
+    // Send changes to the real database update endpoint.
+    const response = await fetch(config.endpoint(originalRecord), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf_token,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.error || `Save failed (HTTP ${response.status}).`);
+    }
+
+    // Reload from the server rather than trusting the browser's local object.
+    const loaded = await loadSavedRecords();
+
+    if (!loaded) {
+      throw new Error(
+        'The server accepted the update, but the records could not be reloaded for verification.'
+      );
+    }
+
+    // Locate the same database record again after the reload.
+    const refreshedConfig = recordConfigs[type];
+    const refreshedIndex = refreshedConfig.data.findIndex(
+      record => String(record.id) === String(recordId)
+    );
+
+    if (refreshedIndex === -1) {
+      throw new Error('The saved record was not found after reloading.');
+    }
+
+    activeRecordDetail = {
+      ...activeRecordDetail,
+      index: refreshedIndex,
+    };
+
+    const refreshedRecord = refreshedConfig.data[refreshedIndex];
+
+    renderRecordDetails(false);
+
+    document.getElementById('recordDetailSubtitle').textContent =
+      refreshedRecord.name ||
+      refreshedRecord.plate ||
+      refreshedRecord.product ||
+      refreshedRecord.imei ||
+      refreshedRecord.sim ||
+      '';
+
+    // Only report success after the server response and reload succeeded.
+    showToast(`${config.title} saved and reloaded from the server.`, 'success');
+
+  } catch (error) {
+    console.error('Record save failed:', error);
+    showToast(error.message || 'Could not save this record.', 'danger');
+
+  } finally {
+    saveButton.disabled = false;
+    saveButton.innerHTML = '<i class="bx bx-save me-1"></i>Save changes';
+  }
 }
+
 
 function closeRecordDetails() {
   activeRecordDetail = null;
@@ -2263,7 +2489,10 @@ function renderFleet() {
   document.getElementById('fleetBody').innerHTML = list.length ? list.map(r=>`
     <tr>
       <td class="fw-semibold">${r.plate}</td>
-      <td>${r.owner}</td><td>${r.make}</td><td>${r.type}</td><td>${r.mileage}</td>
+      <td>${r.owner}</td>
+      <td>${[r.make, r.model].filter(Boolean).join(' ')}</td>
+      <td>${r.type}</td>
+      <td>${r.mileage}</td>
       <td><span class="badge ${statusBadge[r.status]||'badge-secondary-subtle'}">${r.status}</span></td>
       <td><span class="badge ${r.tracker==='Online'?'badge-success-subtle':'badge-secondary-subtle'}">${r.tracker}</span></td>
       <td class="${r.service==='Overdue'?'text-danger fw-semibold':''}">${r.service}</td>
@@ -2343,32 +2572,89 @@ function sigBars(n) {
   return '<div class="signal-bars">'+[...Array(5)].map((_,i)=>`<div class="sig-bar" style="height:${3+i*2}px;background:${i<n?colors[Math.min(n-1,4)]:'#e7e7ff'}"></div>`).join('')+'</div>';
 }
 
+
 function renderTrackers() {
-  const q = (document.getElementById('trkQ')?.value||'').toLowerCase();
-  const sf = document.getElementById('trkSf')?.value||'';
-  const bf = document.getElementById('trkBf')?.value||'';
-  const list = trackers.filter(t=>(!q||(t.plate+t.imei+t.simNum).toLowerCase().includes(q))&&(!sf||t.status===sf)&&(!bf||t.brand===bf));
-  document.getElementById('trackerBody').innerHTML = list.length ? list.map(t=>`
-    <tr>
-      <td><input type="checkbox" class="form-check-input"></td>
-      <td class="fw-semibold">${t.plate}</td>
-      <td><code style="font-size:.75rem">${t.imei}</code></td>
-      <td>${t.brand} <span class="text-muted">${t.model}</span></td>
-      <td><code style="font-size:.75rem">${t.simNum}</code></td>
-      <td><code style="font-size:.7rem;color:#a1acb8">${t.iccid.slice(0,10)}…</code></td>
-      <td>${t.network}</td>
-      <td><span class="badge ${t.status==='Online'?'badge-success-subtle':t.status==='Alert'?'badge-danger-subtle':'badge-secondary-subtle'}">${t.status}</span></td>
-      <td>${sigBars(t.signal)}</td>
-      <td class="text-muted" style="font-size:.8rem">${t.lastSeen}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary me-1" onclick="openRecordDetails('tracker',${trackers.indexOf(t)})"><i class="bx bx-show me-1"></i>View</button>
-        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openRecordDetails('tracker',${trackers.indexOf(t)},true)"><i class="bx bx-edit"></i></button>
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteTracker(${t.id})">Del</button>
-      </td>
-    </tr>`).join('') : '<tr><td colspan="11" class="text-center text-muted py-4">No tracker records yet. Add a tracker or import a device list.</td></tr>';
+  const q = (document.getElementById('trkQ')?.value || '').toLowerCase();
+  const sf = document.getElementById('trkSf')?.value || '';
+  const bf = document.getElementById('trkBf')?.value || '';
+
+  const list = trackers.filter(t => {
+    const sim = simCards.find(s => Number(s.tracker_id) === Number(t.id));
+
+    const searchable = [
+      t.vehicle || '',
+      t.imei || '',
+      sim?.phone_number || sim?.sim || '',
+      sim?.iccid || ''
+    ].join(' ').toLowerCase();
+
+    return (
+      (!q || searchable.includes(q)) &&
+      (!sf || t.status === sf) &&
+      (!bf || (t.brand || '') === bf)
+    );
+  });
+
+  document.getElementById('trackerBody').innerHTML = list.length
+    ? list.map(t => {
+        const sim = simCards.find(
+          s => Number(s.tracker_id) === Number(t.id)
+        );
+
+        const plate = t.vehicle || 'Not assigned';
+        const imei = t.imei || '—';
+        const brand = t.brand || 'Not recorded';
+        const model = t.model || '';
+        const simNum = sim?.phone_number || sim?.sim || 'Not assigned';
+        const iccid = sim?.iccid || '';
+        const network = sim?.provider || sim?.network || 'Not recorded';
+        const status = t.status || 'Unknown';
+        const signal = t.signal;
+        const lastSeen = t.lastSeen || 'Not recorded';
+        const iccidDisplay = iccid
+          ? `${iccid.slice(0, 10)}${iccid.length > 10 ? '…' : ''}`
+          : 'Not recorded';
+
+        const statusClass = status === 'Online'
+          ? 'badge-success-subtle'
+          : status === 'Alert'
+            ? 'badge-danger-subtle'
+            : 'badge-secondary-subtle';
+
+        return `
+          <tr>
+            <td><input type="checkbox" class="form-check-input"></td>
+            <td class="fw-semibold">${plate}</td>
+            <td><code style="font-size:.75rem">${imei}</code></td>
+            <td>${brand} <span class="text-muted">${model}</span></td>
+            <td><code style="font-size:.75rem">${simNum}</code></td>
+            <td><code style="font-size:.7rem;color:#a1acb8">${iccidDisplay}</code></td>
+            <td>${network}</td>
+            <td>
+              <span class="badge ${statusClass}">${status}</span>
+            </td>
+            <td>${signal == null ? '—' : sigBars(signal)}</td>
+            <td class="text-muted" style="font-size:.8rem">${lastSeen}</td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary me-1"
+                onclick="openRecordDetails('tracker',${trackers.indexOf(t)})">
+                <i class="bx bx-show me-1"></i>View
+              </button>
+              <button class="btn btn-sm btn-outline-secondary me-1"
+                onclick="openRecordDetails('tracker',${trackers.indexOf(t)},true)">
+                <i class="bx bx-edit"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger"
+                onclick="deleteTracker(${t.id})">Del</button>
+            </td>
+          </tr>`;
+      }).join('')
+    : '<tr><td colspan="11" class="text-center text-muted py-4">No tracker records yet. Add a tracker or import a device list.</td></tr>';
+
   document.getElementById('trkTotal').textContent = trackers.length;
   document.getElementById('trkSIMTotal').textContent = simCards.length;
 }
+
 
 function toggleAllTrk(cb) { document.querySelectorAll('#trackerBody input[type=checkbox]').forEach(c=>c.checked=cb.checked); }
 
@@ -3268,9 +3554,18 @@ async function loadSavedRecords() {
     calendarState.loadedMonth = null;
     buildCal();
     loadDashboardSummary();
-  } catch(error) {
-    showToast(error.message || 'Could not load saved records from the database.','danger');
-  }
+
+    return true;
+  } catch (error) {
+  console.error('loadSavedRecords failed:', error);
+
+  showToast(
+    error.message || 'Could not load saved records from the database.',
+    'danger'
+  );
+
+  return false;
+}
 }
 
 async function loadDashboardSummary() {

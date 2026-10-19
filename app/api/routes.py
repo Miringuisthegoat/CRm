@@ -173,6 +173,239 @@ def create_vehicle():
     return jsonify({"ok": True, "id": vehicle.id}), 201
 
 
+# Update an existing customer
+@api_bp.patch("/customers/<int:record_id>")
+@login_required
+def update_customer(record_id):
+    data = request.get_json(silent=True) or {}
+    allowed = {"full_name", "notes", "email", "phone"}
+
+    if not data or set(data) - allowed:
+        return jsonify({"error": "Invalid customer fields."}), 400
+
+    record = db.session.get(Customer, record_id)
+    if record is None:
+        return jsonify({"error": "Customer not found."}), 404
+
+    if "full_name" in data:
+        value = str(data["full_name"]).strip()
+        if not value or len(value) > 120:
+            return jsonify({"error": "Enter a valid customer name."}), 400
+        record.full_name = value
+
+    if "phone" in data:
+        value = str(data["phone"]).strip()
+        if not value or len(value) > 32:
+            return jsonify({"error": "Enter a valid phone number."}), 400
+        record.phone = value
+
+    if "email" in data:
+        value = str(data["email"]).strip()
+        if len(value) > 190:
+            return jsonify({"error": "Email is too long."}), 400
+        record.email = value or None
+
+    if "notes" in data:
+        record.notes = str(data["notes"]).strip() or None
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Customer update failed")
+        return jsonify({"error": "Could not save customer changes."}), 500
+
+    return jsonify({"ok": True, "id": record.id})
+
+
+# Update an existing vehicle
+@api_bp.patch("/vehicles/<int:record_id>")
+@login_required
+def update_vehicle(record_id):
+    data = request.get_json(silent=True) or {}
+    allowed = {"plate_number", "make", "model", "network"}
+
+    if not data or set(data) - allowed:
+        return jsonify({"error": "Invalid vehicle fields."}), 400
+
+    record = db.session.get(Vehicle, record_id)
+    if record is None:
+        return jsonify({"error": "Vehicle not found."}), 404
+
+    if "plate_number" in data:
+        plate = str(data["plate_number"]).strip().upper()
+        if not is_valid_plate(plate):
+            return jsonify({"error": "Invalid vehicle plate."}), 400
+        record.plate_number = plate
+
+    for field in ("make", "model"):
+        if field in data:
+            value = str(data[field]).strip()
+            if len(value) > 64:
+                return jsonify({"error": f"{field} is too long."}), 400
+            setattr(record, field, value or None)
+
+    if "network" in data:
+        network = str(data["network"]).strip()
+        if network not in NETWORKS:
+            return jsonify({"error": "Unsupported network."}), 400
+        record.network = network
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Vehicle update failed")
+        return jsonify({"error": "Could not save vehicle changes."}), 500
+
+    return jsonify({"ok": True, "id": record.id})
+
+
+# Update an accessory
+@api_bp.patch("/accessories/<int:record_id>")
+@login_required
+def update_accessory(record_id):
+    data = request.get_json(silent=True) or {}
+    allowed = {"name", "price_kes", "quantity"}
+
+    if not data or set(data) - allowed:
+        return jsonify({"error": "Invalid accessory fields."}), 400
+
+    record = db.session.get(Accessory, record_id)
+    if record is None:
+        return jsonify({"error": "Accessory not found."}), 404
+
+    if "name" in data:
+        name = str(data["name"]).strip()
+        if not name or len(name) > 120:
+            return jsonify({"error": "Enter a valid product name."}), 400
+        record.name = name
+
+    if "price_kes" in data:
+        try:
+            price = float(data["price_kes"])
+        except (TypeError, ValueError):
+            return jsonify({"error": "Price must be numeric."}), 400
+        if not math.isfinite(price) or price < 0:
+            return jsonify({"error": "Price must be non-negative."}), 400
+        record.price_kes = price
+
+    if "quantity" in data:
+        try:
+            quantity = int(data["quantity"])
+        except (TypeError, ValueError):
+            return jsonify({"error": "Stock must be a whole number."}), 400
+        if quantity < 0:
+            return jsonify({"error": "Stock cannot be negative."}), 400
+        record.quantity = quantity
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Accessory update failed")
+        return jsonify({"error": "Could not save accessory changes."}), 500
+
+    return jsonify({"ok": True, "id": record.id})
+
+
+# Update a tracker
+@api_bp.patch("/trackers/<int:record_id>")
+@login_required
+def update_tracker(record_id):
+    data = request.get_json(silent=True) or {}
+    allowed = {"imei", "status"}
+
+    if not data or set(data) - allowed:
+        return jsonify({"error": "Invalid tracker fields."}), 400
+
+    record = db.session.get(Tracker, record_id)
+    if record is None:
+        return jsonify({"error": "Tracker not found."}), 404
+
+    if "imei" in data:
+        imei = str(data["imei"]).strip()
+        if not imei or len(imei) > 64:
+            return jsonify({"error": "Enter a valid IMEI."}), 400
+
+        duplicate = Tracker.query.filter(
+            Tracker.imei == imei,
+            Tracker.id != record.id,
+        ).first()
+
+        if duplicate:
+            return jsonify({"error": "That IMEI is already registered."}), 409
+
+        record.imei = imei
+
+    if "status" in data:
+        status = str(data["status"]).strip()
+        if not status or len(status) > 32:
+            return jsonify({"error": "Enter a valid tracker status."}), 400
+        record.status = status
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Tracker update failed")
+        return jsonify({"error": "Could not save tracker changes."}), 500
+
+    return jsonify({"ok": True, "id": record.id})
+
+
+# Update a SIM card
+@api_bp.patch("/sims/<int:record_id>")
+@login_required
+def update_sim(record_id):
+    data = request.get_json(silent=True) or {}
+    allowed = {"phone_number", "iccid", "provider"}
+
+    if not data or set(data) - allowed:
+        return jsonify({"error": "Invalid SIM fields."}), 400
+
+    record = db.session.get(SIMCard, record_id)
+    if record is None:
+        return jsonify({"error": "SIM card not found."}), 404
+
+    if "phone_number" in data:
+        phone = str(data["phone_number"]).strip()
+        if not phone or len(phone) > 32:
+            return jsonify({"error": "Enter a valid SIM number."}), 400
+        record.phone_number = phone
+
+    if "iccid" in data:
+        iccid = str(data["iccid"]).strip()
+        if not iccid or len(iccid) > 64:
+            return jsonify({"error": "Enter a valid ICCID."}), 400
+
+        duplicate = SIMCard.query.filter(
+            SIMCard.iccid == iccid,
+            SIMCard.id != record.id,
+        ).first()
+
+        if duplicate:
+            return jsonify({"error": "That ICCID is already registered."}), 409
+
+        record.iccid = iccid
+
+    if "provider" in data:
+        provider = str(data["provider"]).strip()
+        if not provider or len(provider) > 32:
+            return jsonify({"error": "Enter a valid SIM provider."}), 400
+        record.provider = provider
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("SIM update failed")
+        return jsonify({"error": "Could not save SIM changes."}), 500
+
+    return jsonify({"ok": True, "id": record.id})
+
+
+
 @api_bp.post("/sms/send")
 @login_required
 def sms_send():
@@ -204,75 +437,94 @@ def import_data():
     trackers = Tracker.query.order_by(Tracker.imei).all()
     sims = SIMCard.query.order_by(SIMCard.phone_number).all()
 
-    return jsonify(
-        {
-            "customers": [
-                {
-                    "name": customer.full_name,
-                    "company": customer.notes or "",
-                    "email": customer.email or "",
-                    "phone": customer.phone or "",
-                    "type": "Fleet client" if customer.vehicles else "Individual",
-                    "vehicles": str(len(customer.vehicles)),
-                    "status": "Registered",
-                    "plate": customer.vehicles[0].plate_number if customer.vehicles else "—",
-                }
-                for customer in customers
-            ],
-            "vehicles": [
-                {
-                    "plate": vehicle.plate_number,
-                    "owner": vehicle.customer.full_name,
-                    "make": " ".join(part for part in (vehicle.make, vehicle.model) if part),
-                    "type": "Not recorded",
-                    "mileage": "Not recorded",
-                    "status": "Registered",
-                    "tracker": "Assigned" if vehicle.trackers else "Not assigned",
-                    "service": "Not recorded",
-                }
-                for vehicle in vehicles
-            ],
-            "accessories": [
-                {
-                    "product": accessory.name,
-                    "price": str(accessory.price_kes),
-                    "stock": accessory.quantity,
-                    "status": "ok" if accessory.quantity > 0 else "out",
-                }
-                for accessory in accessories
-            ],
-            "trackers": [
-                {
-                    "id": tracker.id,
-                    "plate": tracker.vehicle.plate_number,
-                    "imei": tracker.imei,
-                    "brand": "Not recorded",
-                    "model": "",
-                    "simNum": tracker.sim_cards[0].phone_number if tracker.sim_cards else "—",
-                    "iccid": tracker.sim_cards[0].iccid if tracker.sim_cards else "—",
-                    "network": tracker.sim_cards[0].provider if tracker.sim_cards else "Not recorded",
-                    "status": (tracker.status or "registered").title(),
-                    "signal": 0,
-                    "lastSeen": "Not available",
-                }
-                for tracker in trackers
-            ],
-            "sims": [
-                {
-                    "sim": sim.phone_number,
-                    "iccid": sim.iccid,
-                    "network": sim.provider or "Not recorded",
-                    "plan": "Not recorded",
-                    "trackerImei": sim.tracker.imei,
-                    "trackerLabel": sim.tracker.vehicle.plate_number,
-                    "expiry": "Not recorded",
-                    "status": "active",
-                }
-                for sim in sims
-            ],
-        }
-    )
+    return jsonify({
+        "customers": [
+            {
+                "id": customer.id,
+                "name": customer.full_name,
+                "company": customer.notes or "",
+                "email": customer.email or "",
+                "phone": customer.phone or "",
+                "type": (
+                    "Fleet client" if customer.vehicles
+                    else "Individual"
+                ),
+                "vehicles": str(len(customer.vehicles)),
+                "status": "Registered",
+                "plate": (
+                    customer.vehicles[0].plate_number
+                    if customer.vehicles else "—"
+                ),
+            }
+            for customer in customers
+        ],
 
+        "vehicles": [
+            {
+                "id": vehicle.id,
+                "plate": vehicle.plate_number,
+                "owner": (
+                    vehicle.customer.full_name
+                    if vehicle.customer else ""
+                ),
+                "make": vehicle.make or "",
+                "model": vehicle.model or "",
+                "network": vehicle.network or "Safaricom",
+                "type": "Not recorded",
+                "mileage": "Not recorded",
+                "status": "Registered",
+                "tracker": (
+                    "Assigned" if vehicle.trackers
+                    else "Not assigned"
+                ),
+                "service": "Not recorded",
+            }
+            for vehicle in vehicles
+        ],
+
+        "accessories": [
+            {
+                "id": accessory.id,
+                "product": accessory.name,
+                "price": str(accessory.price_kes),
+                "stock": accessory.quantity,
+                "status": (
+                    "ok" if accessory.quantity > 0 else "out"
+                ),
+            }
+            for accessory in accessories
+        ],
+
+        "trackers": [
+            {
+                "id": tracker.id,
+                "vehicle_id": tracker.vehicle_id,
+                "imei": tracker.imei,
+                "status": tracker.status,
+                "vehicle": (
+                    tracker.vehicle.plate_number
+                    if tracker.vehicle else ""
+                ),
+            }
+            for tracker in trackers
+        ],
+
+        "sims": [
+            {
+                "id": sim.id,
+                "tracker_id": sim.tracker_id,
+                "sim": sim.phone_number,
+                "phone_number": sim.phone_number,
+                "iccid": sim.iccid or "",
+                "network": sim.provider or "",
+                "provider": sim.provider or "",
+                "tracker": (
+                    sim.tracker.imei if sim.tracker else ""
+                ),
+            }
+            for sim in sims
+        ],
+    })
 
 @api_bp.post("/import/commit")
 @login_required
