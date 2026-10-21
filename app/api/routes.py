@@ -483,12 +483,66 @@ def update_sim(record_id):
 
 
 
+
 @api_bp.post("/sms/send")
 @login_required
 def sms_send():
-    data = request.get_json() or {}
-    log = send_sms(data["message"], data["recipients"])
-    return jsonify({"id": log.id, "status": log.status, "parts": log.parts, "cost_kes": log.cost_kes})
+    data = request.get_json(silent=True) or {}
+    messages = data.get("messages")
+    message = str(data.get("message", "")).strip()
+    recipients = data.get("recipients", [])
+
+    if not message or len(message) > 5000:
+        return jsonify({"error": "Enter a valid SMS message."}), 400
+
+    if not isinstance(recipients, list) or not recipients:
+        return jsonify({"error": "Select at least one recipient."}), 400
+
+    if len(recipients) > 500:
+        return jsonify({"error": "Send a maximum of 500 recipients per request."}), 400
+
+    if not all(isinstance(phone, str) and phone.strip() for phone in recipients):
+        return jsonify({"error": "One or more recipient phone numbers are invalid."}), 400
+
+    # Use one provider request per message when messages are personalized.
+    if messages is not None:
+        if not isinstance(messages, list) or len(messages) != len(recipients):
+            return jsonify({"error": "Personalized messages do not match the recipients."}), 400
+
+        # Prevent accidentally sending to a different list than the supplied messages.
+        for item, phone in zip(messages, recipients):
+            if not isinstance(item, dict) or item.get("phone", "").strip() != phone:
+                return jsonify({"error": "Recipient/message mismatch."}), 400
+            if not isinstance(item.get("message"), str) or not item["message"].strip():
+                return jsonify({"error": "A personalized message is empty."}), 400
+
+        # The existing service accepts one shared message. Send each personalized
+        # message individually through that service and return all log statuses.
+        results = []
+        for item in messages:
+            log = send_sms(item["message"].strip(), [item["phone"].strip()])
+            results.append({
+                "id": log.id,
+                "status": log.status,
+                "parts": log.parts,
+                "cost_kes": log.cost_kes,
+            })
+
+        all_sent = all(item["status"] == "sent" for item in results)
+        return jsonify({
+            "status": "sent" if all_sent else "retry_pending",
+            "results": results,
+            "sent": sum(item["status"] == "sent" for item in results),
+            "total": len(results),
+        })
+
+    log = send_sms(message, recipients)
+    return jsonify({
+        "id": log.id,
+        "status": log.status,
+        "parts": log.parts,
+        "cost_kes": log.cost_kes,
+    })
 
 
 @api_bp.post("/import/preview")
