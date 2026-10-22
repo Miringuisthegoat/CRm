@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import math
 import re
 
+from app.models import Accessory, CalendarEvent, Customer, Payment, ReminderDelivery, SIMCard, Tracker, Vehicle
 from datetime import datetime, timedelta
 from flask import current_app
 from flask import Blueprint, current_app, jsonify, request
@@ -80,7 +81,8 @@ def dashboard_kpis():
     upcoming_rows = (
         db.session.query(CalendarEvent, Customer.full_name)
         .outerjoin(Customer, CalendarEvent.customer_id == Customer.id)
-        .filter(CalendarEvent.starts_at >= today, CalendarEvent.starts_at < upcoming_until)
+        .filter(CalendarEvent.starts_at >= today, CalendarEvent.starts_at < upcoming_until,
+                CalendarEvent.event_type.in_(("general", "expiry")))
         .order_by(CalendarEvent.starts_at)
         .all()
     )
@@ -148,6 +150,7 @@ def calendar_events():
                 "ends_at": event.ends_at.isoformat(),
                 "description": event.description,
                 "customer_name": customer_name,
+                "event_type": event.event_type,
             }
             for event, customer_name in rows
         ]
@@ -609,6 +612,7 @@ def import_data():
                     else "Not assigned"
                 ),
                 "service": "Not recorded",
+                "customer_id": vehicle.customer_id,
             }
             for vehicle in vehicles
         ],
@@ -877,7 +881,10 @@ def delete_customer(customer_id):
     # Protect records linked to vehicles, payments, or calendar events.
     has_vehicles = Vehicle.query.filter_by(customer_id=customer_id).first()
     has_payments = Payment.query.filter_by(customer_id=customer_id).first()
-    has_events = CalendarEvent.query.filter_by(customer_id=customer_id).first()
+    has_events = CalendarEvent.query.filter(
+        CalendarEvent.customer_id == customer_id,
+        CalendarEvent.event_type.in_(("general", "expiry")),
+    ).first()
 
     if has_vehicles or has_payments or has_events:
         return jsonify({
@@ -972,12 +979,30 @@ def create_calendar_event():
         if customer is None:
             return jsonify({"error": "Selected customer was not found."}), 404
 
+    event_type = str(data.get("event_type", "general")).strip()
+    if event_type not in ("general", "expiry"):
+        return jsonify({"error": "Invalid event type."}), 400
+    vehicle = None
+    if event_type == "expiry":
+        if customer is None:
+            return jsonify({"error": "Select a customer for an expiry event."}), 400
+        if data.get("vehicle_id") not in (None, ""):
+            try:
+                vehicle = db.session.get(Vehicle, int(data["vehicle_id"]))
+            except (TypeError, ValueError):
+                vehicle = None
+            if vehicle is None or vehicle.customer_id != customer.id:
+                return jsonify({"error": "Selected vehicle does not belong to this customer."}), 400
+
     event = CalendarEvent(
         title=title,
         starts_at=starts_at,
         ends_at=starts_at + timedelta(hours=1),
         description=description or None,
         customer_id=customer.id if customer else None,
+        vehicle_id=vehicle.id if vehicle else None,
+        event_type=event_type,
+        reminders_enabled=(event_type == "expiry" and data.get("reminders", True) is not False),
     )
 
     try:
@@ -996,3 +1021,15 @@ def create_calendar_event():
             "error": "Could not save event. Check the database model and required fields."
         }), 500
 
+@api_bp.get("/reminders")
+@login_required
+def reminders_list():
+    rows = (db.session.query(ReminderDelivery, CalendarEvent.title, Customer.full_name)
+            .join(CalendarEvent, ReminderDelivery.event_id == CalendarEvent.id)
+            .outerjoin(Customer, CalendarEvent.customer_id == Customer.id)
+            .order_by(ReminderDelivery.send_at.desc()).limit(300).all())
+    return jsonify([{
+        "id": d.id, "event": title, "customer": name, "channel": d.channel,
+        "offset_days": d.offset_days, "send_at": d.send_at.isoformat(),
+        "status": d.status, "attempts": d.attempts, "error": d.last_error,
+    } for d, title, name in rows])

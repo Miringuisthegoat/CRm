@@ -108,11 +108,29 @@ class SMSLog(TimestampMixin, db.Model):
 class CalendarEvent(TimestampMixin, db.Model):
     __tablename__ = "calendar_events"
     id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id", ondelete="CASCADE"))
+    vehicle_id = db.Column(db.Integer, db.ForeignKey("vehicles.id", ondelete="SET NULL"))
+    # general | expiry | reminder_sent | reminder_failed
+    event_type = db.Column(db.String(24), default="general", server_default="general", nullable=False, index=True)
+    reminders_enabled = db.Column(db.Boolean, default=False, server_default=db.text("false"), nullable=False)
     title = db.Column(db.String(150), nullable=False)
     starts_at = db.Column(db.DateTime, nullable=False)
     ends_at = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.Text)
+
+
+class ReminderDelivery(TimestampMixin, db.Model):
+    __tablename__ = "reminder_deliveries"
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey("calendar_events.id", ondelete="CASCADE"), nullable=False, index=True)
+    offset_days = db.Column(db.Integer, nullable=False)
+    channel = db.Column(db.String(8), nullable=False)  # sms | email
+    send_at = db.Column(db.DateTime, nullable=False, index=True)  # UTC
+    status = db.Column(db.String(12), default="pending", nullable=False, index=True)  # pending|sending|sent|failed|skipped|cancelled
+    attempts = db.Column(db.Integer, default=0, nullable=False)
+    last_error = db.Column(db.String(255))
+    message = db.Column(db.Text)
+    __table_args__ = (db.UniqueConstraint("event_id", "offset_days", "channel", name="uq_reminder_slot"),)
 
 
 @login_manager.user_loader

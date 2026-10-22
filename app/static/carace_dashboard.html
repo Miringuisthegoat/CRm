@@ -3148,7 +3148,7 @@ function buildCal() {
       const dayEvents = calendarState.events.filter(event => event.starts_at.slice(0, 10) === dateKey);
       const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
       const isSelected = calendarState.selectedDate.getFullYear() === year && calendarState.selectedDate.getMonth() === month && calendarState.selectedDate.getDate() === day;
-      const eventMarkup = dayEvents.slice(0, 2).map(event => `<div class="cal-event ev-blue" title="${escapeCalendarText(event.title)}">${escapeCalendarText(event.title)}</div>`).join('');
+      const eventMarkup = dayEvents.slice(0, 2).map(event => `<div class="cal-event ${eventClass(event)}" title="${escapeCalendarText(event.title)}">${escapeCalendarText(event.title)}</div>`).join('');
       const overflow = dayEvents.length > 2 ? `<div class="text-muted" style="font-size:10px">+${dayEvents.length - 2} more</div>` : '';
       html += `<div class="cal-day${isToday ? ' today' : ''}" style="${isSelected ? 'outline:2px solid var(--carace-green);outline-offset:-2px;cursor:pointer' : 'cursor:pointer'}" onclick="selectCalendarDate('${dateKey}')">
         <div class="cal-day-num" style="${isToday ? 'color:var(--carace-green);font-weight:700' : ''}">${day}</div>${eventMarkup}${overflow}
@@ -3195,6 +3195,15 @@ function filterEventCustomers() {
   hidden.value = '';
   selectedLabel.textContent = 'No customer selected';
   results.innerHTML = '';
+
+      option.addEventListener('click', () => {
+      hidden.value = customer.id;
+      input.value = customer.name || '';
+      selectedLabel.textContent =
+        `Selected customer: ${customer.name || 'Unnamed customer'}`;
+      results.innerHTML = '';
+      loadEventVehicles(customer.id);      // <-- add this line
+    });
 
   if (!query) return;
 
@@ -3259,7 +3268,21 @@ function filterEventCustomers() {
 
 
 
+const EVENT_CLASS = {expiry:'ev-orange', reminder_sent:'ev-green', reminder_failed:'ev-red'};
+function eventClass(e) { return EVENT_CLASS[e.event_type] || 'ev-blue'; }
 
+function toggleExpiryFields() {
+  document.getElementById('expiryFields').style.display =
+    document.getElementById('newEventType').value === 'expiry' ? '' : 'none';
+}
+
+function loadEventVehicles(customerId) {
+  const select = document.getElementById('newEventVehicle');
+  const own = fleetData.filter(v => String(v.customer_id) === String(customerId));
+  select.innerHTML = own.length
+    ? own.map(v => `<option value="${v.id}">${escapeCalendarText(v.plate)}</option>`).join('')
+    : '<option value="">No vehicles for this customer</option>';
+}
 
 function openAddCalendarEvent() {
   const date = calendarState.selectedDate || new Date();
@@ -3277,6 +3300,8 @@ function openAddCalendarEvent() {
   document.getElementById('newEventTitle').value = '';
   document.getElementById('newEventTime').value = '09:00';
   document.getElementById('newEventDescription').value = '';
+  document.getElementById('newEventDescription').value = '';
+  document.getElementById('newEventType').value = 'general'; toggleExpiryFields();   // <-- add
 
   document.getElementById('eventCustomerSearch')
   .oninput = filterEventCustomers;
@@ -3309,7 +3334,10 @@ async function saveCalendarEvent(event) {
       date: document.getElementById('newEventDate').value,
       time: document.getElementById('newEventTime').value,
       customer_id: document.getElementById('newEventCustomer').value || null,
-      description: document.getElementById('newEventDescription').value.trim()
+      description: document.getElementById('newEventDescription').value.trim(),
+      event_type: document.getElementById('newEventType').value,                  // <-- add
+      vehicle_id: document.getElementById('newEventVehicle').value || null,       // <-- add
+      reminders: document.getElementById('newEventReminders').checked             // <-- add
     };
 
     const response = await fetch('/api/calendar/events', {
@@ -3359,9 +3387,10 @@ function renderCalendarDetails() {
   const selectedKey = `${calendarState.selectedDate.getFullYear()}-${String(calendarState.selectedDate.getMonth() + 1).padStart(2, '0')}-${String(calendarState.selectedDate.getDate()).padStart(2, '0')}`;
   const selectedEvents = calendarState.events.filter(event => event.starts_at.slice(0, 10) === selectedKey);
   document.getElementById('calendarSelectedDate').textContent = calendarState.selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
-  document.getElementById('calendarSelectedEvents').innerHTML = selectedEvents.length
-    ? selectedEvents.map(event => `<div class="py-1 border-bottom"><div class="fw-semibold" style="font-size:.875rem">${escapeCalendarText(event.title)}</div><div class="text-muted" style="font-size:.75rem">${escapeCalendarText(event.customer_name || 'Customer record')} · ${event.starts_at.slice(11, 16)}</div></div>`).join('')
+    document.getElementById('calendarSelectedEvents').innerHTML = selectedEvents.length
+    ? selectedEvents.map(event => `<div class="py-1 border-bottom"><div class="fw-semibold" style="font-size:.875rem">${escapeCalendarText(event.title)}</div><div class="text-muted" style="font-size:.75rem">${escapeCalendarText(event.customer_name || 'Customer record')} · ${event.starts_at.slice(11, 16)}</div>${String(event.event_type).startsWith('reminder') ? `<div class="text-muted" style="font-size:.75rem">${escapeCalendarText(event.description)}</div>` : ''}</div>`).join('')
     : '<div class="text-muted" style="font-size:.875rem">No records for this date.</div>';
+  
 
   const upcomingEvents = calendarState.events.filter(event => event.starts_at.slice(0, 10) >= selectedKey).slice(0, 5);
   document.getElementById('calendarUpcomingEvents').innerHTML = upcomingEvents.length
@@ -4525,6 +4554,24 @@ restoreRememberedSession();
             Type a name to filter customers, then select the correct customer.
          </small>
        </div>
+
+               <div class="mb-3">
+          <label for="newEventType" class="form-label">Event type</label>
+          <select id="newEventType" class="form-select" onchange="toggleExpiryFields()">
+            <option value="general">General</option>
+            <option value="expiry">Vehicle expiry (auto reminders)</option>
+          </select>
+        </div>
+        <div id="expiryFields" style="display:none">
+          <div class="mb-3">
+            <label for="newEventVehicle" class="form-label">Vehicle</label>
+            <select id="newEventVehicle" class="form-select"><option value="">Select a customer first</option></select>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="newEventReminders" checked>
+            <label class="form-check-label" for="newEventReminders">Email + SMS reminders 30, 14 and 7 days before</label>
+          </div>
+        </div>
 
         <div class="mb-3">
           <label for="newEventDescription" class="form-label">Description</label>

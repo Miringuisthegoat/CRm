@@ -9,6 +9,27 @@ from app.models import SMSLog
 from app.services.utils import sms_parts_and_cost
 
 
+ACCEPTED_WORDS = {"success", "sent", "processed", "queued"}
+ACCEPTED_CODES = {"100", "101", "102"}  # backup if the word is ever missing
+
+FAILURE_REASONS = {
+    "InsufficientBalance": "Africa's Talking balance is too low",
+    "InvalidPhoneNumber": "invalid phone number",
+    "UserInBlacklist": "recipient has blocked SMS",
+    "InvalidSenderId": "sender ID not approved",
+    "RiskHold": "held by Africa's Talking for review",
+    "UnsupportedNumberType": "phone number type not supported",
+    "CouldNotRoute": "network could not route the message",
+    "RejectedByGateway": "rejected by the mobile network",
+}
+
+
+def _accepted(item: dict) -> bool:
+    return (
+        str(item.get("status", "")).lower() in ACCEPTED_WORDS
+        or str(item.get("statusCode")) in ACCEPTED_CODES
+    )
+
 def normalize_phone_number(phone: str) -> str:
     """Normalize a phone number to international format."""
     phone = re.sub(r"[\s\-()]", "", phone.strip())
@@ -40,6 +61,8 @@ def send_sms(message: str, recipients: list[str]) -> SMSLog:
         cost_kes=cost_kes,
         status="queued",
     )
+
+    sms_log.reason = None  # plain-English failure reason, not stored in the database
 
     db.session.add(sms_log)
     db.session.commit()
@@ -82,13 +105,13 @@ def send_sms(message: str, recipients: list[str]) -> SMSLog:
                 sms_log.id,
             )
         else:
-            # 101 indicates acceptance for sending, not confirmed delivery.
-            accepted = all(
-                str(item.get("statusCode")) == "101"
-                for item in recipient_results
-            )
-
+            # 100/101/102 mean accepted by Africa's Talking, not confirmed delivery.
+            accepted = all(_accepted(item) for item in recipient_results)
             sms_log.status = "sent" if accepted else "retry_pending"
+            if not accepted:
+                failed = next(i for i in recipient_results if not _accepted(i))
+                word = str(failed.get("status") or "Unknown")
+                sms_log.reason = FAILURE_REASONS.get(word, word)
 
     except Exception:
         current_app.logger.exception(
@@ -96,6 +119,7 @@ def send_sms(message: str, recipients: list[str]) -> SMSLog:
             sms_log.id,
         )
         sms_log.status = "retry_pending"
+        sms_log.reason = "could not reach Africa's Talking"
 
     db.session.commit()
     return sms_log
