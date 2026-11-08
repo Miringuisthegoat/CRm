@@ -20,7 +20,9 @@ except ImportError:  # pragma: no cover - fallback for environments without Flas
 
         return wrapped
 
-from app.extensions import db
+from app.extensions import db, limiter
+from flask_login import current_user
+from app.services.message_ai import AIError, generate_message
 from app.models import Accessory, CalendarEvent, Customer, Payment, SIMCard, Tracker, Vehicle
 from app.services.importer import fuzzy_map_columns
 from app.services.sms import send_sms
@@ -547,6 +549,34 @@ def sms_send():
         "cost_kes": log.cost_kes,
     })
 
+@api_bp.post("/messages/generate")
+@login_required
+@limiter.limit("20/minute")
+def generate_message_draft():
+    if current_user.role not in ("admin", "manager", "sales"):
+        return jsonify({"error": "Your role cannot use messaging."}), 403
+
+    data = request.get_json(silent=True) or {}
+    channel = str(data.get("channel", "")).lower()
+    instruction = str(data.get("instruction", "")).strip()
+    ids = data.get("customer_ids")
+
+    if channel not in ("sms", "email"):
+        return jsonify({"error": "Channel must be sms or email."}), 400
+    if not 5 <= len(instruction) <= 1000:
+        return jsonify({"error": "Describe the message in 5-1000 characters."}), 400
+    if (not isinstance(ids, list) or not ids or len(ids) > 500
+            or not all(isinstance(i, int) for i in ids)):
+        return jsonify({"error": "Select between 1 and 500 customers."}), 400
+
+    customers = Customer.query.filter(Customer.id.in_(ids)).all()
+    if not customers:
+        return jsonify({"error": "Selected customers were not found."}), 404
+
+    try:
+        return jsonify(generate_message(channel, instruction, customers))
+    except AIError as exc:
+        return jsonify({"error": str(exc)}), 502
 
 @api_bp.post("/import/preview")
 @login_required

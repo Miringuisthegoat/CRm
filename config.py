@@ -31,3 +31,5 @@ class Config:
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
     SMTP_FROM = os.getenv("SMTP_FROM", "Carace <noreply@localhost>")
     RATELIMIT_STORAGE_URI = REDIS_URL or "memory://"
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL = os.getenv("GROQ_MODEL") or "openai/gpt-oss-120b"

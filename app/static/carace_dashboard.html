@@ -1015,6 +1015,19 @@ html[data-bs-theme="dark"] .settings-user-card { background:#2f3349; border-colo
           <i class="bx bx-info-circle fs-5"></i>
           <span id="msgNoticeText"></span>
         </div>
+
+        <div class="card mb-4">
+          <div class="card-body">
+            <label class="form-label" for="aiPrompt"><i class="bx bx-bot me-1"></i>AI writer</label>
+            <textarea class="form-control mb-2" id="aiPrompt" rows="2" maxlength="1000"
+              placeholder="e.g. Remind them their tracker subscription expires soon and ask them to renew via M-Pesa Paybill 400200"></textarea>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <button class="btn btn-primary btn-sm ai-draft-btn" onclick="aiDraft('email')"><i class="bx bx-envelope me-1"></i>Draft email</button>
+              <button class="btn btn-warning btn-sm ai-draft-btn" onclick="aiDraft('sms')"><i class="bx bx-message me-1"></i>Draft SMS</button>
+              <small class="text-muted" id="aiStatus">Select customers first, then describe the message.</small>
+            </div>
+          </div>
+        </div>
         <div class="row g-4">
           <div class="col-md-6">
             <div class="card">
@@ -3403,7 +3416,10 @@ function escapeCalendarText(value) {
 }
 
 // ============ MESSAGING ============
-function merge(tpl,c) { return tpl.replace(/\{\{(\w+)\}\}/g,(_,k)=>c[k]||''); }
+function merge(tpl,c) {
+  return tpl.replace(/\{\{(\w+)\}\}/g,(_,k)=>c[k]||'')
+            .replace(/\s*\(\s*\)/g,'').replace(/[ \t]{2,}/g,' ');
+}
 
 function previewMsg(type) {
   if(!selectedCusts.length) { showToast('Select a customer to preview this message.','warning'); return; }
@@ -3434,6 +3450,57 @@ function sendEmails() {
     setTimeout(run,900);
   };
   run();
+}
+
+async function aiDraft(channel) {
+  if(!selectedCusts.length) { showToast('Select customers first (Customers tab).','warning'); return; }
+  const instruction = document.getElementById('aiPrompt').value.trim();
+  if(instruction.length < 5) { showToast('Describe the message you want.','warning'); return; }
+
+  const buttons = document.querySelectorAll('.ai-draft-btn');
+  const status = document.getElementById('aiStatus');
+  buttons.forEach(b=>b.disabled = true);
+  status.textContent = 'Drafting…';
+  try {
+    const csrfRes = await fetch('/api/csrf-token');
+    if(!csrfRes.ok) throw new Error('Session expired. Sign in again.');
+    const {csrf_token} = await csrfRes.json();
+
+    const res = await fetch('/api/messages/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':csrf_token},
+      body:JSON.stringify({channel, instruction, customer_ids:selectedCusts.map(c=>c.id)})
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || `Request failed (${res.status}).`);
+
+    // Database-backed values so merge() can fill every placeholder per customer.
+    selectedCusts.forEach(c => Object.assign(c, data.variables[c.id] || {}));
+
+    if(channel === 'email') {
+      document.getElementById('emailSubj').value = data.subject;
+      document.getElementById('emailBody').value = data.body;
+    } else {
+      document.getElementById('smsBody').value = data.body;
+      smsCount();
+    }
+
+    let msg = 'Draft ready. Review it, then use Preview.';
+    if(channel === 'sms') {
+      const n = data.preview.length;
+      msg = `Draft ready · ${n} chars (${Math.ceil(n/160)} SMS part${n>160?'s':''}). Review, then Preview.`;
+    }
+    const gaps = Object.entries(data.missing || {});
+    if(gaps.length) {
+      msg += ' Missing data: ' + gaps.map(([k,n])=>`{{${k}}} empty for ${n}`).join(', ') + '.';
+    }
+    status.textContent = msg;
+  } catch(error) {
+    status.textContent = error.message;
+    showToast(error.message || 'Could not generate the message.','danger');
+  } finally {
+    buttons.forEach(b=>b.disabled = false);
+  }
 }
 
 function smsCount() {
