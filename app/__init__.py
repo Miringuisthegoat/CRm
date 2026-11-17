@@ -6,6 +6,10 @@ from app.api.routes import api_bp, web_bp
 from app.auth.routes import auth_bp
 from app.core import socket_events  # noqa: F401
 from app.extensions import csrf, db, limiter, login_manager, migrate, socketio
+from werkzeug.middleware.proxy_fix import ProxyFix
+...
+    app = Flask(__name__, instance_relative_config=True)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 
 def create_app(config_object=Config):
